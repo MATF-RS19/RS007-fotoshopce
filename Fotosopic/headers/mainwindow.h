@@ -43,6 +43,8 @@ private slots:
 
     void on_action_Save_as_triggered();
 
+    void on_action_Delete_triggered();
+
 private:
     // Defining Layouts
     QHBoxLayout* hlMain = new QHBoxLayout();
@@ -59,6 +61,8 @@ private:
 
     // Image class
     Image img{};
+
+    bool hasImage = false;
 
     void showImage();
     void saveImage(const std::string& fileName);

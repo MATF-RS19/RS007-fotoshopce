@@ -1,11 +1,11 @@
-#include "image.h"
+#include "headers/image.h"
 
 Image::Image(const cv::Mat& img, const std::string& fileName)
     : mImg(img), mFileName(fileName)
 {}
 
 Image::Image()
-    : mImg(cv::Mat())
+    : mImg(cv::Mat()), mFileName(std::string())
 {}
 
 Image::~Image()
