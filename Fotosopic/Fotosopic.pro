@@ -29,22 +29,18 @@ QMAKE_CXXFLAGS += -std=c++17
 INCLUDEPATH += /usr/local/include/opencv4
 LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc -lopencv_dnn
 
-SOURCES += \
-        main.cpp \
-        mainwindow.cpp \
-    image.cpp
+SOURCES += src/image.cpp \
+           src/main.cpp \
+           src/mainwindow.cpp
 
-HEADERS += \
-        mainwindow.h \
-    image.h
+HEADERS += headers/image.h \
+           headers/mainwindow.h
 
-FORMS += \
-        mainwindow.ui
+FORMS += forms/mainwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-RESOURCES += \
-    resources.qrc
+RESOURCES += resources/icons.qrc
