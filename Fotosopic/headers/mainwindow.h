@@ -11,6 +11,12 @@
 #include <QString>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QMouseEvent>
+#include <QFormLayout>
+#include <QDialog>
+#include <QLineEdit>
+#include <QList>
+#include <QDialogButtonBox>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -29,7 +35,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    friend Image;
 private slots:
     void on_action_Zoom_triggered();
     void on_action_Zoom_out_triggered();
@@ -45,6 +50,9 @@ private slots:
 
     void on_action_Delete_triggered();
 
+    void on_action_Exit_triggered();
+
+    void on_action_Resize_triggered();
 private:
     // Defining Layouts
     QHBoxLayout* hlMain = new QHBoxLayout();

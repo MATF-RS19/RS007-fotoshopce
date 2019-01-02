@@ -1,7 +1,7 @@
 #include "headers/image.h"
 
 Image::Image(const cv::Mat& img, const std::string& fileName)
-    : mImg(img), mFileName(fileName)
+    : mImg(img), mFileName(fileName), mWidth(img.cols), mHeight(img.rows)
 {}
 
 Image::Image()
@@ -16,13 +16,15 @@ Image::~Image()
 Image::Image(const Image& im)
     : mImg(im.mImg), mFileName(im.mFileName),
       mCurrentZoom(im.mCurrentZoom), mType(im.mType),
-      mMirrored(im.mMirrored)
+      mMirrored(im.mMirrored), mWidth(im.mWidth),
+      mHeight(im.mHeight)
 {}
 
 Image::Image(Image&& im)
     : mImg(std::move(im.mImg)), mFileName(std::move(im.mFileName)),
       mCurrentZoom(std::move(im.mCurrentZoom)), mType(std::move(im.mType)),
-      mMirrored(std::move(im.mMirrored))
+      mMirrored(std::move(im.mMirrored)), mWidth(std::move(im.mWidth)),
+      mHeight(std::move(im.mHeight))
 {}
 
 Image Image::operator=(const Image& im)
@@ -32,6 +34,8 @@ Image Image::operator=(const Image& im)
     mCurrentZoom = im.mCurrentZoom;
     mType = im.mType;
     mMirrored = im.mMirrored;
+    mWidth = im.mWidth;
+    mHeight = im.mHeight;
     return *this;
 }
 
@@ -42,6 +46,8 @@ Image Image::operator=(Image&& im)
     mCurrentZoom = std::move(im.mCurrentZoom);
     mType = std::move(im.mType);
     mMirrored = std::move(im.mMirrored);
+    mWidth = std::move(im.mWidth);
+    mHeight = std::move(im.mHeight);
     return *this;
 }
 
