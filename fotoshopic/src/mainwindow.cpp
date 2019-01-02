@@ -1,7 +1,7 @@
 #include "headers/mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "headers/section.h"
+// #include "headers/section.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -137,6 +137,30 @@ void MainWindow::on_action_Mirror_triggered()
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
+}
+
+void MainWindow::on_action_Rotate_left_triggered()
+{
+    if (m_has_image) {
+        cv::Mat tmp;
+        cv::rotate(img.mImg, tmp, cv::ROTATE_90_COUNTERCLOCKWISE);
+        img.mImg = {tmp};
+        showImage();
+    } else {
+        QMessageBox::warning(this, "Warning", "Image not loaded");
+    }
+}
+
+void MainWindow::on_action_Rotate_right_triggered()
+{
+    if (m_has_image) {
+        cv::Mat tmp;
+        cv::rotate(img.mImg, tmp, cv::ROTATE_90_CLOCKWISE);
+        img.mImg = {tmp};
+        showImage();
+    } else {
+        QMessageBox::warning(this, "Warning", "Image not loaded");
+    }
 }
 
 
