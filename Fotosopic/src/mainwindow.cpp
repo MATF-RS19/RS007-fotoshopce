@@ -42,23 +42,13 @@ void MainWindow::showImage()
     if (hasImage) {
         cv::Mat tmp;
 
-        // Resizing (TODO: maybe completely new image)
-        cv::resize(img.mImg, tmp, cv::Size(img.mWidth, img.mHeight));
-
-        // Zoom (In conflict with resizing)
-        // cv::resize(img.mImg, tmp, cv::Size(), img.mCurrentZoom, img.mCurrentZoom);
-
-        // Mirror
-        if (img.mMirrored)
-            cv::flip(tmp, tmp, 1);
-
         // Type
         if (img.mType == 0) {
-            cv::cvtColor(tmp, tmp, cv::COLOR_BGR2GRAY);
+            cv::cvtColor(img.mImg, tmp, cv::COLOR_BGR2GRAY);
             lbImage->setPixmap(QPixmap::fromImage(QImage(tmp.data, tmp.cols, tmp.rows, int(tmp.step), QImage::Format_Indexed8)));
         }
         else if (img.mType == 1) {
-            cv::cvtColor(tmp, tmp, cv::COLOR_BGR2RGB);
+            cv::cvtColor(img.mImg, tmp, cv::COLOR_BGR2RGB);
             lbImage->setPixmap(QPixmap::fromImage(QImage(tmp.data, tmp.cols, tmp.rows, int(tmp.step), QImage::Format_RGB888)));
         }
     }
@@ -71,13 +61,6 @@ void MainWindow::saveImage(const std::string& fileName)
 {
     try {
         cv::Mat tmp;
-
-        // Zoom
-        cv::resize(img.mImg, tmp, cv::Size(), img.mCurrentZoom, img.mCurrentZoom);
-
-        // Mirror
-        if (img.mMirrored)
-            cv::flip(tmp, tmp, 1);
 
         // Type
         if (img.mType == 0)
@@ -129,34 +112,39 @@ void MainWindow::on_action_Save_as_triggered()
     }
 }
 
+// TODO: Check if image is to large or small
 void MainWindow::on_action_Zoom_triggered()
 {
-//    if (hasImage) {
-//        if (img.mCurrentZoom < 2.0)
-//            img.mCurrentZoom += 0.1;
-//        showImage();
-//    }
-//    else {
-//        QMessageBox::warning(this, "Warning", "Image not loaded");
-//    }
+    if (hasImage) {
+        cv::Mat tmp;
+        cv::resize(img.mImg, tmp, cv::Size(), 1.1, 1.1);
+        img.mImg = {tmp};
+        showImage();
+    }
+    else {
+        QMessageBox::warning(this, "Warning", "Image not loaded");
+    }
 }
 
 void MainWindow::on_action_Zoom_out_triggered()
 {
-//    if (hasImage) {
-//        if (img.mCurrentZoom > 0.2)
-//            img.mCurrentZoom -= 0.1;
-//        showImage();
-//    }
-//    else {
-//        QMessageBox::warning(this, "Warning", "Image not loaded");
-//    }
+    if (hasImage) {
+        cv::Mat tmp;
+        cv::resize(img.mImg, tmp, cv::Size(), 0.9, 0.9);
+        img.mImg = {tmp};
+        showImage();
+    }
+    else {
+        QMessageBox::warning(this, "Warning", "Image not loaded");
+    }
 }
 
 void MainWindow::on_action_Mirror_triggered()
 {
     if (hasImage) {
-        img.mMirrored = !img.mMirrored;
+        cv::Mat tmp;
+        cv::flip(img.mImg, tmp, 1);
+        img.mImg = {tmp};
         showImage();
     }
     else {
@@ -232,8 +220,9 @@ void MainWindow::on_action_Resize_triggered()
 
         // TODO: Check if its int, maybe leaking memory idk
         if (dialog.exec() == QDialog::Accepted) {
-            img.mWidth = fields[0]->text().trimmed().toInt();
-            img.mHeight = fields[1]->text().trimmed().toInt();
+            cv::Mat tmp;
+            cv::resize(img.mImg, tmp, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
+            img.mImg = {tmp};
             showImage();
         }
     }

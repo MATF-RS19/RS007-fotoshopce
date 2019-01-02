@@ -25,11 +25,7 @@ public:
     std::string mFileName;
 
     // Image params
-    double mCurrentZoom = 1.0;
     int mType = 1;
-    bool mMirrored = false;
-    int mWidth = 0;
-    int mHeight = 0;
 };
 
 #endif // IMAGE_H
