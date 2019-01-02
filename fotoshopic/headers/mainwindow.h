@@ -24,56 +24,43 @@
 
 #include "image.h"
 
+
 namespace Ui {
-class MainWindow;
+	class MainWindow;
 }
 
 class MainWindow : public QMainWindow
 {
-    Q_OBJECT
+	Q_OBJECT
 
-public:
-    explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
-private slots:
-    void on_action_Zoom_triggered();
-    void on_action_Zoom_out_triggered();
-    void on_btRGB_triggered();
-    void on_btGray_triggered();
-    void on_action_Mirror_triggered();
-
-    void on_action_Open_triggered();
-
-    void on_action_Save_triggered();
-
-    void on_action_Save_as_triggered();
-
-    void on_action_Delete_triggered();
-
-    void on_action_Exit_triggered();
-
-    void on_action_Resize_triggered();
-private:
-    // Defining Layouts
-    QHBoxLayout* hlMain = new QHBoxLayout();
-    QVBoxLayout* vlTools = new QVBoxLayout();
-    QHBoxLayout* hlImageType = new QHBoxLayout();
-
-    // Defining Widgets
-    QPushButton* btRGB = new QPushButton("RGB");
-    QPushButton* btGray = new QPushButton("Gray");
-    QLabel* lbImage = new QLabel();
-    QComboBox* cbMainSettings = new QComboBox();
-
-    Ui::MainWindow *ui;
-
-    // Image class
-    Image img{};
-
-    bool hasImage = false;
-
-    void showImage();
-    void saveImage(const std::string& fileName);
+	/* Public member functions */
+	public:
+		explicit MainWindow(QWidget *parent = nullptr);
+		~MainWindow();
+	/* Private slots */
+	private slots:
+		void on_action_ZoomIn_triggered();
+		void on_action_ZoomOut_triggered();
+		void on_btRGB_triggered();
+		void on_btGray_triggered();
+		void on_action_Mirror_triggered();
+		void on_action_Open_triggered();
+		void on_action_Save_triggered();
+		void on_action_SaveAs_triggered();
+		void on_action_Delete_triggered();
+		void on_action_Exit_triggered();
+		void on_action_Resize_triggered();
+	/* Private member functions */
+	private:
+		void showImage();
+		void saveImage(const std::string& fileName);
+	/* Private variables */
+	private:
+		// Define the image
+		QLabel* m_lb_image = new QLabel();
+		Ui::MainWindow *ui;
+		Image img;
+		bool m_has_image;
 };
 
 #endif // MAINWINDOW_H

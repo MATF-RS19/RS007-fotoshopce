@@ -25,14 +25,104 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralWidget"/>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>741</width>
+      <height>591</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="hlMain">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMaximumSize</enum>
+     </property>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>0</y>
+      <width>211</width>
+      <height>212</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="hlSide">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMaximumSize</enum>
+     </property>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Brightness</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSlider" name="horizontalSlider">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Contrast</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSlider" name="horizontalSlider_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Shadows</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSlider" name="horizontalSlider_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Highlights</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSlider" name="horizontalSlider_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>22</height>
+     <height>33</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -41,7 +131,7 @@
     </property>
     <addaction name="action_Open"/>
     <addaction name="action_Save"/>
-    <addaction name="action_Save_as"/>
+    <addaction name="action_SaveAs"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -63,8 +153,8 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <addaction name="action_Zoom"/>
-    <addaction name="action_Zoom_out"/>
+    <addaction name="action_ZoomIn"/>
+    <addaction name="action_ZoomOut"/>
     <addaction name="action_Resize"/>
     <addaction name="action_Mirror"/>
    </widget>
@@ -104,8 +194,8 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="action_Zoom"/>
-   <addaction name="action_Zoom_out"/>
+   <addaction name="action_ZoomIn"/>
+   <addaction name="action_ZoomOut"/>
    <addaction name="action_Resize"/>
    <addaction name="action_Mirror"/>
    <addaction name="action_Draw"/>
@@ -134,7 +224,7 @@
     <string>&amp;Save</string>
    </property>
   </action>
-  <action name="action_Save_as">
+  <action name="action_SaveAs">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
      <normaloff>:/icons/icons/save.png</normaloff>:/icons/icons/save.png</iconset>
@@ -184,7 +274,7 @@
     <string>&amp;Exit</string>
    </property>
   </action>
-  <action name="action_Zoom">
+  <action name="action_ZoomIn">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
      <normaloff>:/icons/icons/zoom.png</normaloff>:/icons/icons/zoom.png</iconset>
@@ -193,7 +283,7 @@
     <string>&amp;Zoom</string>
    </property>
   </action>
-  <action name="action_Zoom_out">
+  <action name="action_ZoomOut">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
      <normaloff>:/icons/icons/zoom_out.png</normaloff>:/icons/icons/zoom_out.png</iconset>

@@ -7,25 +7,25 @@
 
 class Image
 {
-public:
-    Image(const cv::Mat& img, const std::string& filename);
-    Image();
-    Image(const Image& im);
-    Image(Image&& im);
-    ~Image();
-    Image operator=(const Image& im);
-    Image operator=(Image&& im);
-//    void setType(int type);
-//    void setCurrentZoom(double zoom);
-//    int getType() const;
-//    double getCurrentZoom() const;
+	public:
+		Image(const cv::Mat& img, const std::string& filename);
+		Image();
+		Image(const Image& im);
+		Image(Image&& im);
+		~Image();
+		Image operator=(const Image& im);
+		Image operator=(Image&& im);
+		//    void setType(int type);
+		//    void setCurrentZoom(double zoom);
+		//    int getType() const;
+		//    double getCurrentZoom() const;
 
-    // Defining image
-    cv::Mat mImg;
-    std::string mFileName;
+		// Defining image
+		cv::Mat mImg;
+		std::string mFileName;
 
-    // Image params
-    int mType = 1;
+		// Image params
+		int mType = 1;
 };
 
 #endif // IMAGE_H
