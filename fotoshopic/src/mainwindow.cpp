@@ -20,8 +20,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Disable spacing
     // TODO: Pls lice radi nesto
     auto *hlMain{new QHBoxLayout};
-    ui->mainContainer->setLayout(hlMain);
-    ui->mainContainer->setMaximumWidth(700);
+	//ui->mainContainer->setLayout(hlMain);
+	//ui->mainContainer->setMaximumWidth(700);
     hlMain->setStretchFactor(hlMain, 30);
 
 	// Set side pannel alignment

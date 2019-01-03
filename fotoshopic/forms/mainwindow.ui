@@ -102,6 +102,8 @@
     <addaction name="action_ZoomOut"/>
     <addaction name="action_Resize"/>
     <addaction name="action_Mirror"/>
+    <addaction name="action_Rotate_right"/>
+    <addaction name="action_Rotate_left"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
@@ -141,6 +143,8 @@
    </attribute>
    <addaction name="action_ZoomIn"/>
    <addaction name="action_ZoomOut"/>
+   <addaction name="action_Rotate_right"/>
+   <addaction name="action_Rotate_left"/>
    <addaction name="action_Resize"/>
    <addaction name="action_Mirror"/>
    <addaction name="action_Draw"/>
@@ -271,6 +275,24 @@
    </property>
    <property name="text">
     <string>&amp;Text</string>
+   </property>
+  </action>
+  <action name="action_Rotate_right">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/rotate_right.jpeg</normaloff>:/icons/icons/rotate_right.jpeg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Rotate right</string>
+   </property>
+  </action>
+  <action name="action_Rotate_left">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/rotate_left.jpeg</normaloff>:/icons/icons/rotate_left.jpeg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Rotate left</string>
    </property>
   </action>
  </widget>
