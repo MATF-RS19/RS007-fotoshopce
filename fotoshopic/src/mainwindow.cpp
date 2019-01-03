@@ -137,7 +137,6 @@ std::pair<std::vector<QSlider*>, QButtonGroup*> MainWindow::create_section(QStri
         toggle_group->addButton(rbutton);
     }
 
-    toggle_group->button(0)->setChecked(true);
     rbuttons->setLayout(hbox);
 
     auto *vbox{new QVBoxLayout()};
