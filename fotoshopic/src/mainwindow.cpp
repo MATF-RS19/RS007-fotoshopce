@@ -6,7 +6,8 @@
 
 MainWindow::MainWindow(QWidget *parent)
 	:	QMainWindow(parent),
-		ui(new Ui::MainWindow),
+		m_lb_image{new QLabel},
+		ui{new Ui::MainWindow},
 		m_has_image{false}
 {
 	ui->setupUi(this);
@@ -14,6 +15,12 @@ MainWindow::MainWindow(QWidget *parent)
 	// Disable spacing
 	ui->hlMain->setSpacing(0);
 	ui->hlSide->setSpacing(0);
+
+	// Set side pannel alignment
+	ui->hlSide->setAlignment(Qt::AlignTop);
+	create_section("Basic settings", {"Brightness", "Contrast"});
+	create_section("Advanced settings", {"Saturation", "Highlights"});
+	create_section("Color settings", {"Red", "Magenta"});
 
 	// Setting Widget params
 	m_lb_image->setMinimumSize(600, 600);
@@ -33,7 +40,7 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
-void MainWindow::showImage()
+void MainWindow::show_image() const
 {
 	if (m_has_image) {
 		cv::Mat tmp;
@@ -51,7 +58,7 @@ void MainWindow::showImage()
 	}
 }
 
-void MainWindow::saveImage(const std::string& fileName)
+void MainWindow::save_image(const std::string& fileName)
 {
 	try {
 		cv::Mat tmp;
@@ -75,18 +82,34 @@ void MainWindow::on_action_Open_triggered()
 		cv::Mat tmp = cv::imread(fileName.toStdString());
 		img = {tmp, fileName.toStdString()};
 		m_has_image = true;
-		showImage();
+		show_image();
 		setWindowTitle(fileName);
 	} catch (...) {
 		QMessageBox::warning(this, "Warning", "Cannot open file" + fileName);
 	}
 }
 
+void MainWindow::create_section(QString name, const std::vector<QString> &contents)
+{
+	Section* section{new Section(name, 300, this)};
+	ui->hlSide->addWidget(section);
+
+	auto* sliders{new QVBoxLayout()};
+	for(auto &&e : contents)
+	{
+		sliders->addWidget(new QLabel(e, section));
+		sliders->addWidget(new QSlider(Qt::Horizontal, section));
+	}
+
+	section->setContentLayout(*sliders);
+}
+
+
 // TODO: Check if there is anything to save
 void MainWindow::on_action_Save_triggered()
 {
 	if (m_has_image) {
-		saveImage(img.mFileName);
+		save_image(img.mFileName);
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -96,7 +119,7 @@ void MainWindow::on_action_SaveAs_triggered()
 {
 	if (m_has_image) {
 		QString fileName = QFileDialog::getSaveFileName(this, "Save as...");
-		saveImage(fileName.toStdString());
+		save_image(fileName.toStdString());
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -109,7 +132,7 @@ void MainWindow::on_action_ZoomIn_triggered()
 		cv::Mat tmp;
 		cv::resize(img.mImg, tmp, cv::Size(), 1.1, 1.1);
 		img.mImg = {tmp};
-		showImage();
+		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -121,7 +144,7 @@ void MainWindow::on_action_ZoomOut_triggered()
 		cv::Mat tmp;
 		cv::resize(img.mImg, tmp, cv::Size(), 0.9, 0.9);
 		img.mImg = {tmp};
-		showImage();
+		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -133,7 +156,7 @@ void MainWindow::on_action_Mirror_triggered()
 		cv::Mat tmp;
 		cv::flip(img.mImg, tmp, 1);
 		img.mImg = {tmp};
-		showImage();
+		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -144,7 +167,7 @@ void MainWindow::on_btRGB_triggered()
 {
 	if (m_has_image) {
 		img.mType = 1;
-		showImage();
+		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -154,7 +177,7 @@ void MainWindow::on_btGray_triggered()
 {
 	if (m_has_image) {
 		img.mType = 0;
-		showImage();
+		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -169,7 +192,7 @@ void MainWindow::on_action_Delete_triggered()
 		if (reply == QMessageBox::Yes) {
 			img = {};
 			m_has_image = false;
-			showImage();
+			show_image();
 		}
 
 	} else {
@@ -208,7 +231,7 @@ void MainWindow::on_action_Resize_triggered()
 			cv::Mat tmp;
 			cv::resize(img.mImg, tmp, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
 			img.mImg = {tmp};
-			showImage();
+			show_image();
 		}
 
 	} else {
