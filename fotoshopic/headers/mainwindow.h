@@ -23,7 +23,6 @@
 #include <opencv2/opencv.hpp>
 
 #include "image.h"
-#include "section.h"
 
 
 namespace Ui {
@@ -52,10 +51,12 @@ class MainWindow : public QMainWindow
 		void on_action_Exit_triggered();
 		void on_action_Resize_triggered();
 	/* Private member functions */
-	private:
-		void show_image() const;
-		void save_image(const std::string& fileName);
-		void create_section(QString name, const std::vector<QString> &contents);
+        void on_action_Rotate_left_triggered();
+        void on_action_Rotate_right_triggered();
+
+private:
+		void showImage();
+		void saveImage(const std::string& fileName);
 	/* Private variables */
 	private:
 		// Define the image
