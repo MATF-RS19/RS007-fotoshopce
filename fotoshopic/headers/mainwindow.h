@@ -56,7 +56,8 @@ class MainWindow : public QMainWindow
 	private:
 		void show_image() const;
 		void save_image(const std::string& fileName);
-		void create_section(QString name, const std::vector<QString> &contents);
+        std::vector<QSlider*> create_section(QString name, const std::vector<QString> &contents);
+        std::pair<std::vector<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons);
 	// Private variables
 	private:
 		// Define the image

@@ -3,6 +3,9 @@
 
 #include <headers/section.h>
 
+#include <QButtonGroup>
+#include <QRadioButton>
+
 // #include "headers/section.h"
 
 
@@ -14,15 +17,21 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	ui->setupUi(this);
 
-	// Disable spacing
-	ui->hlMain->setSpacing(0);
-	ui->hlSide->setSpacing(0);
+    // Disable spacing
+    // TODO: Pls lice radi nesto
+    auto *hlMain{new QHBoxLayout};
+    ui->mainContainer->setLayout(hlMain);
+    ui->mainContainer->setMaximumWidth(700);
+    hlMain->setStretchFactor(hlMain, 30);
 
 	// Set side pannel alignment
+    // TODO: Add slots and signals for sliders
 	ui->hlSide->setAlignment(Qt::AlignTop);
-	create_section("Basic settings", {"Brightness", "Contrast"});
-	create_section("Advanced settings", {"Saturation", "Highlights"});
-	create_section("Color settings", {"Red", "Magenta"});
+    auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Shadows", "Highlights", "Whites", "Blacks"})};
+    auto advanced_sliders{create_section("Advanced settings", {"Structure", "Sharpen", "Vignette", "Blur", "Fade"})};
+    auto color_sliders{create_section("Color settings", {"Saturation", "Luminance", "Temperature"})};
+    // TODO: Add color selection
+    auto color_individual_sliders{create_section("Individual color settings", {"Hue", "Saturation", "Luminance"}, 3)};
 
 	// Setting Widget params
 	m_lb_image->setMinimumSize(600, 600);
@@ -34,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
 	m_lb_image->setAlignment(Qt::AlignCenter);
 
 	// Add image to main widget
-	ui->hlMain->addWidget(m_lb_image);
+    hlMain->addWidget(m_lb_image);
 }
 
 MainWindow::~MainWindow()
@@ -91,21 +100,60 @@ void MainWindow::on_action_Open_triggered()
 	}
 }
 
-void MainWindow::create_section(QString name, const std::vector<QString> &contents)
+std::vector<QSlider*> MainWindow::create_section(QString name, const std::vector<QString> &contents)
 {
-	Section* section{new Section(name, 300, this)};
+    Section *section{new Section(name, 300, this)};
 	ui->hlSide->addWidget(section);
 
-	auto* sliders{new QVBoxLayout()};
+    auto *vbox{new QVBoxLayout()};
+    std::vector<QSlider*> sliders;
+
 	for(auto &&e : contents)
 	{
-		sliders->addWidget(new QLabel(e, section));
-		sliders->addWidget(new QSlider(Qt::Horizontal, section));
+        vbox->addWidget(new QLabel(e, section));
+        sliders.push_back(new QSlider(Qt::Horizontal, section));
+        vbox->addWidget(sliders.back());
 	}
 
-	section->setContentLayout(*sliders);
+    section->setContentLayout(*vbox);
+    return sliders;
 }
 
+std::pair<std::vector<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons)
+{
+    Section *section{new Section(name, 300, this)};
+    ui->hlSide->addWidget(section);
+
+    auto *rbuttons{new QWidget(this)};
+
+    auto *hbox{new QHBoxLayout};
+    hbox->setAlignment(Qt::AlignCenter);
+    auto *toggle_group{new QButtonGroup(hbox)};
+
+    for(int i = 0; i < buttons; ++i)
+    {
+        auto *rbutton{new QRadioButton};
+        hbox->addWidget(rbutton);
+        toggle_group->addButton(rbutton);
+    }
+
+    toggle_group->button(0)->setChecked(true);
+    rbuttons->setLayout(hbox);
+
+    auto *vbox{new QVBoxLayout()};
+    std::vector<QSlider*> sliders;
+    vbox->addWidget(rbuttons);
+
+    for(auto &&e : contents)
+    {
+        vbox->addWidget(new QLabel(e, section));
+        sliders.push_back(new QSlider(Qt::Horizontal, section));
+        vbox->addWidget(sliders.back());
+    }
+
+    section->setContentLayout(*vbox);
+    return {sliders, toggle_group};
+}
 
 // TODO: Check if there is anything to save
 void MainWindow::on_action_Save_triggered()
