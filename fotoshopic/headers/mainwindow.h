@@ -33,11 +33,11 @@ class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 
-	/* Public member functions */
+	// Public member functions
 	public:
 		explicit MainWindow(QWidget *parent = nullptr);
 		~MainWindow();
-	/* Private slots */
+	// Private slots
 	private slots:
 		void on_action_ZoomIn_triggered();
 		void on_action_ZoomOut_triggered();
@@ -50,14 +50,14 @@ class MainWindow : public QMainWindow
 		void on_action_Delete_triggered();
 		void on_action_Exit_triggered();
 		void on_action_Resize_triggered();
-	/* Private member functions */
-        void on_action_Rotate_left_triggered();
-        void on_action_Rotate_right_triggered();
-
-private:
-		void showImage();
-		void saveImage(const std::string& fileName);
-	/* Private variables */
+		void on_action_Rotate_left_triggered();
+		void on_action_Rotate_right_triggered();
+	// Private member functions
+	private:
+		void show_image() const;
+		void save_image(const std::string& fileName);
+		void create_section(QString name, const std::vector<QString> &contents);
+	// Private variables
 	private:
 		// Define the image
 		QLabel* m_lb_image;
