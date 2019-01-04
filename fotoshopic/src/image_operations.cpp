@@ -56,7 +56,6 @@ namespace fs::ops
 	{
 		m_old = img;
 		cv::resize(img.mImg, img.mImg, cv::Size(m_width, m_height));
-		m_new = img;
 	}
 
 	// Reverse image resizing

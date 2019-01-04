@@ -26,9 +26,7 @@
 #include "image.h"
 
 
-namespace Ui {
-	class MainWindow;
-}
+namespace Ui { class MainWindow; }
 
 class MainWindow : public QMainWindow
 {
@@ -53,10 +51,14 @@ class MainWindow : public QMainWindow
 		void on_action_Resize_triggered();
 		void on_action_Rotate_left_triggered();
 		void on_action_Rotate_right_triggered();
+        void on_action_Undo_triggered();
+        void on_action_Redo_triggered();
 	// Private member functions
-	private:
+    private:
 		void show_image() const;
 		void save_image(const std::string& fileName);
+        void push_operation(fs::ops::AbstractOperation *op);
+        void pop_operation();
         std::vector<QSlider*> create_section(QString name, const std::vector<QString> &contents);
         std::pair<std::vector<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons);
 	// Private variables
