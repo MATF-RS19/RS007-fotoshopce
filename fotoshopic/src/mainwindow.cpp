@@ -1,12 +1,10 @@
 #include "headers/mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <headers/section.h>
+#include "headers/section.h"
 
 #include <QButtonGroup>
 #include <QRadioButton>
-
-// #include "headers/section.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -20,8 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Disable spacing
     // TODO: Pls lice radi nesto
     auto *hlMain{new QHBoxLayout};
-	//ui->mainContainer->setLayout(hlMain);
-	//ui->mainContainer->setMaximumWidth(700);
+	ui->mainContainer->setLayout(hlMain);
+	ui->mainContainer->setMaximumWidth(700);
     hlMain->setStretchFactor(hlMain, 30);
 
 	// Set side pannel alignment
@@ -174,25 +172,27 @@ void MainWindow::on_action_SaveAs_triggered()
 	}
 }
 
+// TODO: Fix zooming, implement dragging while zoomed [@milanilic332]
 // TODO: Check if image is to large or small
 void MainWindow::on_action_ZoomIn_triggered()
 {
 	if (m_has_image) {
 		cv::Mat tmp;
 		cv::resize(img.mImg, tmp, cv::Size(), 1.1, 1.1);
-		img.mImg = {tmp};
+		img.mImg = tmp;
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
 }
 
+// TODO: Fix zooming, implement dragging while zoomed [@milanilic332]
 void MainWindow::on_action_ZoomOut_triggered()
 {
 	if (m_has_image) {
 		cv::Mat tmp;
 		cv::resize(img.mImg, tmp, cv::Size(), 0.9, 0.9);
-		img.mImg = {tmp};
+		img.mImg = tmp;
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -202,9 +202,8 @@ void MainWindow::on_action_ZoomOut_triggered()
 void MainWindow::on_action_Mirror_triggered()
 {
 	if (m_has_image) {
-		cv::Mat tmp;
-		cv::flip(img.mImg, tmp, 1);
-		img.mImg = {tmp};
+		// TODO: push back to image ops
+		cv::flip(img.mImg, img.mImg, 1);
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -214,9 +213,8 @@ void MainWindow::on_action_Mirror_triggered()
 void MainWindow::on_action_Rotate_left_triggered()
 {
     if (m_has_image) {
-        cv::Mat tmp;
-        cv::rotate(img.mImg, tmp, cv::ROTATE_90_COUNTERCLOCKWISE);
-        img.mImg = {tmp};
+		// TODO: push back to image ops
+		cv::rotate(img.mImg, img.mImg, cv::ROTATE_90_COUNTERCLOCKWISE);
 		show_image();
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -226,9 +224,8 @@ void MainWindow::on_action_Rotate_left_triggered()
 void MainWindow::on_action_Rotate_right_triggered()
 {
     if (m_has_image) {
-        cv::Mat tmp;
-        cv::rotate(img.mImg, tmp, cv::ROTATE_90_CLOCKWISE);
-        img.mImg = {tmp};
+		// TODO: push back to image ops
+		cv::rotate(img.mImg, img.mImg, cv::ROTATE_90_CLOCKWISE);
 		show_image();
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -301,9 +298,7 @@ void MainWindow::on_action_Resize_triggered()
 
 		// TODO: Check if its int, maybe leaking memory idk
 		if (dialog.exec() == QDialog::Accepted) {
-			cv::Mat tmp;
-			cv::resize(img.mImg, tmp, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
-			img.mImg = {tmp};
+			cv::resize(img.mImg, img.mImg, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
 			show_image();
 		}
 

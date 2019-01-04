@@ -22,6 +22,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 
+#include "abstract_operation.h"
 #include "image.h"
 
 
@@ -64,6 +65,7 @@ class MainWindow : public QMainWindow
 		QLabel* m_lb_image;
 		Ui::MainWindow *ui;
 		Image img;
+		std::vector<std::unique_ptr<fs::ops::AbstractOperation>> m_fwd_ops, m_bwd_ops;
 		bool m_has_image;
 };
 

@@ -32,12 +32,14 @@ LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lope
 SOURCES += src/image.cpp \
            src/main.cpp \
            src/mainwindow.cpp \
-		   src/section.cpp
+           src/section.cpp \
+		   src/image_operations.cpp
 
 HEADERS += headers/image.h \
            headers/mainwindow.h \
-		   headers/section.h \
-		   headers/abstract_operation.h
+           headers/section.h \
+           headers/abstract_operation.h \
+		   headers/image_operations.h
 
 FORMS += forms/mainwindow.ui
 

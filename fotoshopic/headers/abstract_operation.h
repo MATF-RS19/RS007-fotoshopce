@@ -8,15 +8,19 @@
 class Image;
 
 
-/*
-* @brief Abstract base class for all image related operations.
-*/
-class AbstractOperation
+namespace fs::ops
 {
-	// Public member functions
-	public:
-		virtual Image apply(Image img) const = 0; 
-		virtual Image invert(Image img) const = 0;
-};
 
+	/*
+	* @brief Abstract base class for all image related operations.
+	*/
+	class AbstractOperation
+	{
+		// Public member functions
+		public:
+			virtual ~AbstractOperation() {}
+			virtual void apply(Image &img) = 0;
+			virtual void invert(Image &img) = 0;
+	};
 
+} // namespace fs::ops
