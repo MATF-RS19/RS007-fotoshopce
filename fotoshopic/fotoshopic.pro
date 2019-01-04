@@ -36,7 +36,8 @@ SOURCES += src/image.cpp \
 
 HEADERS += headers/image.h \
            headers/mainwindow.h \
-		   headers/section.h
+		   headers/section.h \
+		   headers/abstract_operation.h
 
 FORMS += forms/mainwindow.ui
 
