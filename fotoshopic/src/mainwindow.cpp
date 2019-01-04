@@ -6,6 +6,8 @@
 #include <QButtonGroup>
 #include <QRadioButton>
 
+#include <headers/image_operations.h>
+
 
 MainWindow::MainWindow(QWidget *parent)
 	:	QMainWindow(parent),
@@ -84,13 +86,35 @@ void MainWindow::save_image(const std::string& fileName)
 	}
 }
 
+void MainWindow::push_operation(fs::ops::AbstractOperation *op)
+{
+    op->apply(img);
+    m_fwd_ops.emplace_back(std::move(op));
+}
+
+void MainWindow::pop_operation()
+{
+    auto op{std::move(m_fwd_ops.back())};
+    m_fwd_ops.pop_back();
+    op->invert(img);
+    m_bwd_ops.emplace_back(std::move(op));
+}
+
 void MainWindow::on_action_Open_triggered()
 {
-	QString fileName = QFileDialog::getOpenFileName(this, "Open file");
+    if(m_has_image) {
+        auto reply{QMessageBox::question(this, "Warning", "All unsaved changes will be lost. Do you wish to proceed?", QMessageBox::Yes | QMessageBox::No)};
+        if(QMessageBox::No == reply) {
+            return;
+        }
+    }
+
+    // NOTE: Emits a warning.
+    QString fileName{QFileDialog::getOpenFileName(this, "Open file")};
 	try {
-		cv::Mat tmp = cv::imread(fileName.toStdString());
-		img = {tmp, fileName.toStdString()};
-		m_has_image = true;
+        cv::Mat tmp{cv::imread(fileName.toStdString())};
+        img = Image(tmp, fileName.toStdString());
+        m_has_image = true;
 		show_image();
 		setWindowTitle(fileName);
 	} catch (...) {
@@ -202,8 +226,7 @@ void MainWindow::on_action_ZoomOut_triggered()
 void MainWindow::on_action_Mirror_triggered()
 {
 	if (m_has_image) {
-		// TODO: push back to image ops
-		cv::flip(img.mImg, img.mImg, 1);
+        push_operation(new fs::ops::MirrorOperation);
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -213,9 +236,8 @@ void MainWindow::on_action_Mirror_triggered()
 void MainWindow::on_action_Rotate_left_triggered()
 {
     if (m_has_image) {
-		// TODO: push back to image ops
-		cv::rotate(img.mImg, img.mImg, cv::ROTATE_90_COUNTERCLOCKWISE);
-		show_image();
+        push_operation(new fs::ops::RotateLeftOperation);
+        show_image();
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
     }
@@ -224,9 +246,8 @@ void MainWindow::on_action_Rotate_left_triggered()
 void MainWindow::on_action_Rotate_right_triggered()
 {
     if (m_has_image) {
-		// TODO: push back to image ops
-		cv::rotate(img.mImg, img.mImg, cv::ROTATE_90_CLOCKWISE);
-		show_image();
+        push_operation(new fs::ops::RotateRightOperation);
+        show_image();
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
     }
@@ -298,12 +319,12 @@ void MainWindow::on_action_Resize_triggered()
 
 		// TODO: Check if its int, maybe leaking memory idk
 		if (dialog.exec() == QDialog::Accepted) {
-			cv::resize(img.mImg, img.mImg, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
+            push_operation(new fs::ops::ResizeOperation(fields[0]->text().toInt(), fields[1]->text().toInt()));
 			show_image();
 		}
 
 	} else {
-		QMessageBox::warning(this, "Warning", "Cannot crop image");
+        QMessageBox::warning(this, "Warning", "Cannot resize image");
 	}
 }
 
@@ -314,4 +335,28 @@ void MainWindow::on_action_Exit_triggered()
 	if (reply == QMessageBox::Yes) {
 		QApplication::quit();
 	}
+}
+
+void MainWindow::on_action_Undo_triggered()
+{
+    if(m_fwd_ops.empty()) {
+        QMessageBox::information(this, "Info", "Nothing to undo.");
+        return;
+    }
+
+    pop_operation();
+    show_image();
+}
+
+void MainWindow::on_action_Redo_triggered()
+{
+    if(m_bwd_ops.empty()) {
+        QMessageBox::information(this, "Info", "Nothing to redo.");
+        return;
+    }
+
+    auto op{std::move(m_bwd_ops.back())};
+    m_bwd_ops.pop_back();
+    push_operation(op.release());
+    show_image();
 }

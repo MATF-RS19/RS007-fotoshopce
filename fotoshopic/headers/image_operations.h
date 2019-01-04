@@ -52,7 +52,7 @@ namespace fs::ops
 			void invert(Image &img) override;
 		private:
 			int m_width, m_height;
-			Image m_new, m_old;
+            Image m_old;
 	};
 
 } // namespace fs::ops
