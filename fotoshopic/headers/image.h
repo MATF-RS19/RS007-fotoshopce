@@ -1,10 +1,15 @@
-#ifndef IMAGE_H
-#define IMAGE_H
+#pragma once
 
+
+#include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 
+
+/*
+* @brief TODO: docstring [@milanilic332]
+*/
 class Image
 {
 	public:
@@ -27,5 +32,3 @@ class Image
 		// Image params
 		int mType = 1;
 };
-
-#endif // IMAGE_H
