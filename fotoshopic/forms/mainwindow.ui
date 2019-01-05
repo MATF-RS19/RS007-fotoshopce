@@ -31,7 +31,7 @@
      <rect>
       <x>740</x>
       <y>0</y>
-      <width>211</width>
+      <width>237</width>
       <height>591</height>
      </rect>
     </property>
@@ -42,6 +42,24 @@
      <property name="sizeConstraint">
       <enum>QLayout::SetMaximumSize</enum>
      </property>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="btRGB">
+         <property name="text">
+          <string>RGB</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btGray">
+         <property name="text">
+          <string>Gray</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
     </layout>
    </widget>
    <widget class="QWidget" name="mainContainer" native="true">
@@ -67,7 +85,7 @@
      <x>0</x>
      <y>0</y>
      <width>1000</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
