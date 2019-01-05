@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
     // TODO: Add slots and signals for sliders
 	ui->hlSide->setAlignment(Qt::AlignTop);
     auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Shadows", "Highlights", "Whites", "Blacks"})};
-    auto advanced_sliders{create_section("Advanced settings", {"Structure", "Sharpen", "Vignette", "Blur", "Fade"})};
+	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur", "Fade"})};
     auto color_sliders{create_section("Color settings", {"Saturation", "Luminance", "Temperature"})};
     // TODO: Add color selection
     auto color_individual_sliders{create_section("Individual color settings", {"Hue", "Saturation", "Luminance"}, 3)};
