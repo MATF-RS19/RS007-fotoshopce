@@ -6,6 +6,7 @@
 #include <QButtonGroup>
 #include <QRadioButton>
 
+#include <headers/edit_operations.h>
 #include <headers/image_operations.h>
 
 
@@ -27,7 +28,21 @@ MainWindow::MainWindow(QWidget *parent)
 	// Set side pannel alignment
     // TODO: Add slots and signals for sliders
 	ui->hlSide->setAlignment(Qt::AlignTop);
+
     auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Shadows", "Highlights", "Whites", "Blacks"})};
+
+	QObject::connect(basic_sliders[0], &QSlider::sliderMoved, [&](auto &&e) {
+		push_operation(new fs::ops::BasicEditOperation(m["brightness"], e, fs::ops::basic_edits::brightness));
+		m["brightness"] = e;
+		show_image();
+	});
+
+	QObject::connect(basic_sliders[1], &QSlider::sliderMoved, [&](auto &&e) {
+		push_operation(new fs::ops::BasicEditOperation(m["contrast"], e, fs::ops::basic_edits::contrast));
+		m["contrast"] = e;
+		show_image();
+	});
+
 	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur", "Fade"})};
     auto color_sliders{create_section("Color settings", {"Saturation", "Luminance", "Temperature"})};
     // TODO: Add color selection

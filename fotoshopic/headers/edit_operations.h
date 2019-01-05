@@ -36,8 +36,8 @@ namespace fs::ops
 			virtual void apply(Image &img) override;
 			virtual void invert(Image &img) override;
 
-			inline const float &from() const { return m_from; }
-			inline const float &to() const { return m_to; }
+			inline float from() const { return m_from; }
+			inline float to() const { return m_to; }
 		private:
 			float m_from, m_to;
 			basic_edits m_edit;

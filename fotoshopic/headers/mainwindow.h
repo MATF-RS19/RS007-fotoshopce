@@ -69,6 +69,7 @@ class MainWindow : public QMainWindow
 		Image img;
 		std::vector<std::unique_ptr<fs::ops::AbstractOperation>> m_fwd_ops, m_bwd_ops;
 		bool m_has_image;
+		std::unordered_map<std::string, int> m{ {"brightness", 50}, {"contrast", 50}};
 };
 
 #endif // MAINWINDOW_H
