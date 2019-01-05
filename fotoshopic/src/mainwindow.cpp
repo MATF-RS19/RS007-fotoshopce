@@ -266,7 +266,7 @@ void MainWindow::on_action_Rotate_right_triggered()
 }
 
 
-void MainWindow::on_btRGB_pressed()
+void MainWindow::on_btRGB_triggered()
 {
 	if (m_has_image) {
 		img.mType = 1;
@@ -276,7 +276,7 @@ void MainWindow::on_btRGB_pressed()
 	}
 }
 
-void MainWindow::on_btGray_pressed()
+void MainWindow::on_btGray_triggered()
 {
 	if (m_has_image) {
 		img.mType = 0;

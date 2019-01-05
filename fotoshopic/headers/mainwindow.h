@@ -40,8 +40,8 @@ class MainWindow : public QMainWindow
 	private slots:
 		void on_action_ZoomIn_triggered();
 		void on_action_ZoomOut_triggered();
-		void on_btRGB_pressed();
-		void on_btGray_pressed();
+		void on_btRGB_triggered();
+		void on_btGray_triggered();
 		void on_action_Mirror_triggered();
 		void on_action_Open_triggered();
 		void on_action_Save_triggered();
