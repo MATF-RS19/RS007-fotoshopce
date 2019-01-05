@@ -137,8 +137,7 @@ std::vector<QSlider*> MainWindow::create_section(QString name, const std::vector
         vbox->addWidget(sliders.back());
 	}
 
-    for (auto &&e : sliders)
-    {
+	for (auto &&e : sliders) {
         e->setSliderPosition(50);
     }
 
@@ -177,10 +176,13 @@ std::pair<std::vector<QSlider*>, QButtonGroup*> MainWindow::create_section(QStri
         vbox->addWidget(sliders.back());
     }
 
-    for (auto &&e : sliders)
-    {
+	for (auto &&e : sliders) {
         e->setSliderPosition(50);
     }
+
+	if(buttons) {
+		toggle_group->buttons()[0]->setChecked(true);
+	}
 
     section->setContentLayout(*vbox);
     return {sliders, toggle_group};
