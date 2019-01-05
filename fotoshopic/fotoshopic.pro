@@ -39,7 +39,9 @@ HEADERS += headers/image.h \
            headers/mainwindow.h \
            headers/section.h \
            headers/abstract_operation.h \
-		   headers/image_operations.h
+		   headers/image_operations.h \
+		   headers/edit_operations.h \
+		   headers/color_operations.h
 
 FORMS += forms/mainwindow.ui
 
