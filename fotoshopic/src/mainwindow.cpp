@@ -137,6 +137,11 @@ std::vector<QSlider*> MainWindow::create_section(QString name, const std::vector
         vbox->addWidget(sliders.back());
 	}
 
+    for (auto &&e : sliders)
+    {
+        e->setSliderPosition(50);
+    }
+
     section->setContentLayout(*vbox);
     return sliders;
 }
@@ -170,6 +175,11 @@ std::pair<std::vector<QSlider*>, QButtonGroup*> MainWindow::create_section(QStri
         vbox->addWidget(new QLabel(e, section));
         sliders.push_back(new QSlider(Qt::Horizontal, section));
         vbox->addWidget(sliders.back());
+    }
+
+    for (auto &&e : sliders)
+    {
+        e->setSliderPosition(50);
     }
 
     section->setContentLayout(*vbox);
