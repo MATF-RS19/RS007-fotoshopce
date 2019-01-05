@@ -27,6 +27,8 @@ namespace fs::ops
 			explicit ColorEditOperation(int from, int to, colors color);
 			virtual void apply(Image &img) override;
 			virtual void invert(Image &img) override;
+		private:
+			colors m_color;
 	};
 
 } // namespace fs::ops

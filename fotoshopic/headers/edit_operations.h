@@ -32,14 +32,15 @@ namespace fs::ops
 	class BasicEditOperation : public AbstractOperation
 	{
 		public:
-			explicit BasicEditOperation(float from, float to);
+			explicit BasicEditOperation(float from, float to, basic_edits edit);
 			virtual void apply(Image &img) override;
 			virtual void invert(Image &img) override;
 
-			inline int from() const { return m_from; }
-			inline int to() const { return m_to; }
+			inline const float &from() const { return m_from; }
+			inline const float &to() const { return m_to; }
 		private:
 			float m_from, m_to;
+			basic_edits m_edit;
 	};
 
 
