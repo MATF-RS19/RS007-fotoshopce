@@ -252,7 +252,6 @@ std::pair<std::vector<QSlider*>, QButtonGroup*> MainWindow::create_section(QStri
     return {sliders, toggle_group};
 }
 
-// TODO: Check if there is anything to save
 void MainWindow::on_action_Save_triggered()
 {
 	if (m_has_image) {
@@ -277,9 +276,7 @@ void MainWindow::on_action_SaveAs_triggered()
 void MainWindow::on_action_ZoomIn_triggered()
 {
 	if (m_has_image) {
-		cv::Mat tmp;
-		cv::resize(img.m_img, tmp, cv::Size(), 1.1, 1.1);
-		img.m_img = tmp;
+		push_operation(new fs::ops::ResizeOperation(int(img.m_img.cols*1.1), int(img.m_img.rows*1.1)));
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -290,9 +287,7 @@ void MainWindow::on_action_ZoomIn_triggered()
 void MainWindow::on_action_ZoomOut_triggered()
 {
 	if (m_has_image) {
-		cv::Mat tmp;
-		cv::resize(img.m_img, tmp, cv::Size(), 0.9, 0.9);
-		img.m_img = tmp;
+		push_operation(new fs::ops::ResizeOperation(int(img.m_img.cols*0.9), int(img.m_img.rows*0.9)));
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
