@@ -4,10 +4,6 @@
 #include "image.h"
 
 
-// Forward declaration
-class Image;
-
-
 namespace fs::ops
 {
 
