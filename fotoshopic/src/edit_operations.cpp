@@ -16,7 +16,7 @@ namespace fs::ops
 
 	void BasicEditOperation::apply(Image &img)
 	{
-		auto diff{m_to - m_from};
+		double diff(static_cast<double>(m_to - m_from));
 
 		switch(m_edit) {
 			case fs::ops::basic_edits::brightness:
