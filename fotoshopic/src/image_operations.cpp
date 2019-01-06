@@ -12,7 +12,7 @@ namespace fs::ops
 	// Mirror flip image
 	void MirrorOperation::apply(Image &img)
 	{
-		cv::flip(img.mImg, img.mImg, 1);
+		cv::flip(img.m_img, img.m_img, 1);
 	}
 
 	// Reverse image mirror flip
@@ -24,25 +24,25 @@ namespace fs::ops
 	// Rotate image left
 	void RotateLeftOperation::apply(Image &img)
 	{
-		cv::rotate(img.mImg, img.mImg, cv::ROTATE_90_COUNTERCLOCKWISE);
+		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_COUNTERCLOCKWISE);
 	}
 
 	// Invert left rotation
 	void RotateLeftOperation::invert(Image &img)
 	{
-		cv::rotate(img.mImg, img.mImg, cv::ROTATE_90_CLOCKWISE);
+		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_CLOCKWISE);
 	}
 
 	// Rotate image right
 	void RotateRightOperation::apply(Image &img)
 	{
-		cv::rotate(img.mImg, img.mImg, cv::ROTATE_90_CLOCKWISE);
+		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_CLOCKWISE);
 	}
 
 	// Invert right rotation
 	void RotateRightOperation::invert(Image &img)
 	{
-		cv::rotate(img.mImg, img.mImg, cv::ROTATE_90_COUNTERCLOCKWISE);
+		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_COUNTERCLOCKWISE);
 	}
 
 	// Constructor for resize operation
@@ -55,7 +55,7 @@ namespace fs::ops
 	void ResizeOperation::apply(Image &img)
 	{
 		m_old = img;
-		cv::resize(img.mImg, img.mImg, cv::Size(m_width, m_height));
+		cv::resize(img.m_img, img.m_img, cv::Size(m_width, m_height));
 	}
 
 	// Reverse image resizing
