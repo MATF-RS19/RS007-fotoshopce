@@ -14,8 +14,8 @@ namespace fs::ops
 	class MirrorOperation : public AbstractOperation
 	{
 		public:
+			MirrorOperation(const Image &img);
 			void apply(Image &img) override;
-			void invert(Image &img) override;
 	};
 
 
@@ -25,8 +25,8 @@ namespace fs::ops
 	class RotateLeftOperation : public AbstractOperation
 	{
 		public:
+			RotateLeftOperation(const Image &img);
 			void apply(Image &img) override;
-			void invert(Image &img) override;
 	};
 
 
@@ -36,8 +36,8 @@ namespace fs::ops
 	class RotateRightOperation : public AbstractOperation
 	{
 		public:
+			RotateRightOperation(const Image &img);
 			void apply(Image &img) override;
-			void invert(Image &img) override;
 	};
 
 
@@ -47,12 +47,10 @@ namespace fs::ops
 	class ResizeOperation : public AbstractOperation
 	{
 		public:
-			explicit ResizeOperation(int width, int height);
+			explicit ResizeOperation(const Image &img, int width, int height);
 			void apply(Image &img) override;
-			void invert(Image &img) override;
 		private:
 			int m_width, m_height;
-            Image m_old;
 	};
 
 } // namespace fs::ops

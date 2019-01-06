@@ -34,7 +34,8 @@ SOURCES += src/image.cpp \
            src/mainwindow.cpp \
            src/section.cpp \
 		   src/image_operations.cpp \
-    src/edit_operations.cpp
+		   src/edit_operations.cpp \
+		   src/abstract_operation.cpp
 
 HEADERS += headers/image.h \
            headers/mainwindow.h \

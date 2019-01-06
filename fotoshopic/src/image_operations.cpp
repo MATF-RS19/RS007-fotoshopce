@@ -9,59 +9,66 @@
 namespace fs::ops
 {
 
-	// Mirror flip image
+	/*
+	* @brief Builds instance of MirrorOperation.
+	*/
+	MirrorOperation::MirrorOperation(const Image &img)
+		:	AbstractOperation(img)
+	{}
+
+	/*
+	* @brief Mirror flip image.
+	*/
 	void MirrorOperation::apply(Image &img)
 	{
 		cv::flip(img.m_img, img.m_img, 1);
 	}
 
-	// Reverse image mirror flip
-	void MirrorOperation::invert(Image &img)
-	{
-		apply(img);
-	}
+	/*
+	* @brief Builds instance of RotateLeftOperation.
+	*/
+	RotateLeftOperation::RotateLeftOperation(const Image &img)
+		:	AbstractOperation(img)
+	{}
 
-	// Rotate image left
+	/*
+	* @brief Rotate image left.
+	*/
 	void RotateLeftOperation::apply(Image &img)
 	{
 		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_COUNTERCLOCKWISE);
 	}
 
-	// Invert left rotation
-	void RotateLeftOperation::invert(Image &img)
-	{
-		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_CLOCKWISE);
-	}
+	/*
+	* @brief Builds instance of RotateRightOperation.
+	*/
+	RotateRightOperation::RotateRightOperation(const Image &img)
+		:	AbstractOperation(img)
+	{}
 
-	// Rotate image right
+	/*
+	* @brief Rotate image right.
+	*/
 	void RotateRightOperation::apply(Image &img)
 	{
 		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_CLOCKWISE);
 	}
 
-	// Invert right rotation
-	void RotateRightOperation::invert(Image &img)
-	{
-		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_COUNTERCLOCKWISE);
-	}
-
-	// Constructor for resize operation
-	ResizeOperation::ResizeOperation(int width, int height)
-		:	m_width{std::move(width)},
+	/*
+	* @brief Builds instance of ResizeOperation.
+	*/
+	ResizeOperation::ResizeOperation(const Image &img, int width, int height)
+		:	AbstractOperation(img),
+			m_width{std::move(width)},
 			m_height{std::move(height)}
 	{}
 
-	// Resize image
+	/*
+	* @brief Resize image.
+	*/
 	void ResizeOperation::apply(Image &img)
 	{
-		m_old = img;
 		cv::resize(img.m_img, img.m_img, cv::Size(m_width, m_height));
-	}
-
-	// Reverse image resizing
-	void ResizeOperation::invert(Image &img)
-	{
-		img = m_old;
 	}
 
 } // namespace fs:ops

@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <iostream>
+#include "image.h"
 
 
 // Forward declaration
@@ -18,9 +18,12 @@ namespace fs::ops
 	{
 		// Public member functions
 		public:
+			AbstractOperation(const Image &img);
 			virtual ~AbstractOperation() {}
 			virtual void apply(Image &img) = 0;
-			virtual void invert(Image &img) = 0;
+			void invert(Image &img);
+		private:
+			Image m_img;
 	};
 
 } // namespace fs::ops

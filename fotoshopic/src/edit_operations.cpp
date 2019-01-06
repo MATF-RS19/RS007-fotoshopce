@@ -7,8 +7,9 @@
 namespace fs::ops
 {
 	// Basic edit operation constructor
-	BasicEditOperation::BasicEditOperation(float from, float to, basic_edits edit)
-		:	m_from{from},
+	BasicEditOperation::BasicEditOperation(const Image &img, float from, float to, basic_edits edit)
+		:	AbstractOperation(img),
+			m_from{from},
 			m_to{to},
 			m_edit{edit}
 		{}
@@ -41,13 +42,6 @@ namespace fs::ops
 			default:
 				break;
 		}
-	}
-
-
-	void BasicEditOperation::invert(Image &img)
-	{
-		std::swap(m_to, m_from);
-		apply(img);
 	}
 
 } // namespace fs::ops

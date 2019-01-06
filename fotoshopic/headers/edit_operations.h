@@ -32,9 +32,8 @@ namespace fs::ops
 	class BasicEditOperation : public AbstractOperation
 	{
 		public:
-			explicit BasicEditOperation(float from, float to, basic_edits edit);
+			explicit BasicEditOperation(const Image &img, float from, float to, basic_edits edit);
 			virtual void apply(Image &img) override;
-			virtual void invert(Image &img) override;
 
 			inline float from() const { return m_from; }
 			inline float to() const { return m_to; }
@@ -50,11 +49,8 @@ namespace fs::ops
 	class AdvancedEditOperation : public BasicEditOperation
 	{
 		public:
-			explicit AdvancedEditOperation(float from, float to);
+			explicit AdvancedEditOperation(const Image &img, float from, float to);
 			virtual void apply(Image &img) override;
-			virtual void invert(Image &img) override;
-		private:
-			Image m_old;
 	};
 
 } // namespace fs::ops
