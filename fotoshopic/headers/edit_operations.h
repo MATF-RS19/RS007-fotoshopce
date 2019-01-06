@@ -17,12 +17,12 @@ namespace fs::ops
 		contrast,
 		shadows,
 		highlights,
-		whites,
-		blacks,
 		vignette,
 		saturation,
 		luminance,
 		temperature,
+		sharpen,
+		blur,
 	};
 
 

@@ -39,6 +39,26 @@ namespace fs::ops
 				img.m_img.convertTo(img.m_img, CV_8UC1, 1, diff);
 				break;
 			}
+			case fs::ops::basic_edits::blur:
+			{
+				GaussianBlur(img.m_img, img.m_img, cv::Size(11, 11), std::abs(diff) / 8, 0.0,
+							cv::BORDER_DEFAULT);
+
+				double alpha = 2.5;
+				double beta  = 1.0 - alpha;
+				addWeighted(img.m_img, alpha, img.m_img, beta, 0.0, img.m_img);
+
+				break;
+			}
+			case fs::ops::basic_edits::sharpen:
+			{
+				cv::Mat gaussblur;
+
+				GaussianBlur(img.m_img, gaussblur, cv::Size(0, 0), std::abs(diff) / 8);
+				addWeighted(img.m_img, 1.5, gaussblur, -0.5, 0, img.m_img);
+
+				break;
+			}
 			default:
 				break;
 		}
