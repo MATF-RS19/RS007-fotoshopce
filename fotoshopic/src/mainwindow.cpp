@@ -85,6 +85,27 @@ MainWindow::MainWindow(QWidget *parent)
 
 	// Add image to main widget
     hlMain->addWidget(m_lb_image);
+
+	// Make only one section open at any given moment
+	for(auto *section : m_sections)
+	{
+		QObject::connect(section->toggle(), &QToolButton::clicked, [section, this](auto &&clicked) {
+			if(clicked) {
+				for(auto *e : m_sections)
+				{
+					if(*e != *section) {
+						e->colapse();
+					}
+				}
+			}
+
+			if(clicked) {
+				section->expand();
+			} else {
+				section->colapse();
+			}
+		});
+	}
 }
 
 MainWindow::~MainWindow()
@@ -166,6 +187,7 @@ void MainWindow::on_action_Open_triggered()
 std::vector<QSlider*> MainWindow::create_section(QString name, const std::vector<QString> &contents)
 {
     Section *section{new Section(name, 300, this)};
+	m_sections.push_back(section);
 	ui->hlSide->addWidget(section);
 
     auto *vbox{new QVBoxLayout()};
@@ -189,6 +211,7 @@ std::vector<QSlider*> MainWindow::create_section(QString name, const std::vector
 std::pair<std::vector<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons)
 {
     Section *section{new Section(name, 300, this)};
+	m_sections.push_back(section);
     ui->hlSide->addWidget(section);
 
     auto *rbuttons{new QWidget(this)};

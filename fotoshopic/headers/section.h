@@ -32,18 +32,27 @@ class Section : public QWidget {
 	Q_OBJECT
 
 	private:
-
 		QGridLayout* mainLayout;
 		QToolButton* toggleButton;
 		QFrame* headerLine;
 		QParallelAnimationGroup* toggleAnimation;
 		QScrollArea* contentArea;
 		int animationDuration;
+		bool m_open;
+		long m_uid;
 
+		static long uid_assigner;
 	public:
 		explicit Section(const QString & title = "", const int animationDuration = 100, QWidget* parent = nullptr);
-
+		void colapse();
+		void expand();
+		inline bool open() const { return m_open; }
 		void setContentLayout(QLayout & contentLayout);
+		inline QToolButton *toggle() { return toggleButton; }
+		inline long uid() const { return m_uid; }
+
+		bool operator==(const Section &other) const;
+		bool operator!=(const Section &other) const;
 };
 
 #endif // SECTION_H

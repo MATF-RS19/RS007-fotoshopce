@@ -24,6 +24,7 @@
 
 #include "abstract_operation.h"
 #include "image.h"
+#include "section.h"
 
 
 namespace Ui { class MainWindow; }
@@ -69,6 +70,7 @@ class MainWindow : public QMainWindow
 		Image img;
 		std::vector<std::unique_ptr<fs::ops::AbstractOperation>> m_fwd_ops, m_bwd_ops;
 		bool m_has_image;
+		std::vector<Section*> m_sections;
 		std::unordered_map<std::string, int> m{ {"brightness", 50}, {"contrast", 50}, {"saturation", 50} };
 };
 

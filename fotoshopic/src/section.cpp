@@ -19,13 +19,18 @@
 */    
 
 #include <QPropertyAnimation>
+#include <iostream>
 
 #include "headers/section.h"
 
+long Section::uid_assigner{0};
+
 Section::Section(const QString & title, const int animationDuration, QWidget* parent)
-    : QWidget(parent), animationDuration(animationDuration)
+	: QWidget(parent), animationDuration(animationDuration), m_open{false}, m_uid{uid_assigner}
 {
-    toggleButton = new QToolButton(this);
+	uid_assigner += 1;
+
+	toggleButton = new QToolButton(this);
     headerLine = new QFrame(this);
     toggleAnimation = new QParallelAnimationGroup(this);
     contentArea = new QScrollArea(this);
@@ -61,13 +66,6 @@ Section::Section(const QString & title, const int animationDuration, QWidget* pa
     mainLayout->addWidget(headerLine, row++, 2, 1, 1);
     mainLayout->addWidget(contentArea, row, 0, 1, 3);
     setLayout(mainLayout);
-
-    QObject::connect(toggleButton, &QToolButton::clicked, [this](const bool checked)
-    {
-        toggleButton->setArrowType(checked ? Qt::ArrowType::DownArrow : Qt::ArrowType::RightArrow);
-        toggleAnimation->setDirection(checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
-        toggleAnimation->start();
-    });
 }
 
 void Section::setContentLayout(QLayout & contentLayout)
@@ -90,3 +88,34 @@ void Section::setContentLayout(QLayout & contentLayout)
     contentAnimation->setStartValue(0);
     contentAnimation->setEndValue(contentHeight);
 }
+
+void Section::colapse()
+{
+	if(m_open) {
+		toggleButton->setArrowType(Qt::ArrowType::RightArrow);
+		toggleAnimation->setDirection(QAbstractAnimation::Backward);
+		toggleAnimation->start();
+		m_open = false;
+	}
+}
+
+void Section::expand()
+{
+	if(!m_open) {
+		toggleButton->setArrowType(Qt::ArrowType::DownArrow);
+		toggleAnimation->setDirection(QAbstractAnimation::Forward);
+		toggleAnimation->start();
+		m_open = true;
+	}
+}
+
+bool Section::operator==(const Section &other) const
+{
+	return m_uid == other.m_uid;
+}
+
+bool Section::operator!=(const Section &other) const
+{
+	return !(*this == other);
+}
+
