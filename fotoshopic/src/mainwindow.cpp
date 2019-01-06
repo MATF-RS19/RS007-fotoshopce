@@ -1,6 +1,6 @@
 #include "headers/mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "headers/utils.h"
 #include "headers/section.h"
 
 #include <QButtonGroup>
@@ -9,6 +9,7 @@
 #include <headers/edit_operations.h>
 #include <headers/image_operations.h>
 
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent)
 	:	QMainWindow(parent),
@@ -30,45 +31,23 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->hlSide->setAlignment(Qt::AlignTop);
 
 	// Create basic photo adjustment sliders
-    auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Shadows", "Highlights", "Whites", "Blacks"})};
-
-	QObject::connect(basic_sliders[0], &QSlider::sliderMoved, [&](auto &&e) {
-		if(m_has_image) {
-			push_operation(new fs::ops::BasicEditOperation(m["brightness"], e, fs::ops::basic_edits::brightness));
-			m["brightness"] = e;
-			show_image();
-		} else {
-			QMessageBox::warning(this, "Warning", "No image to adjust.");
-		}
-	});
-
-	QObject::connect(basic_sliders[1], &QSlider::sliderMoved, [&](auto &&e) {
-		if(m_has_image) {
-			push_operation(new fs::ops::BasicEditOperation(m["contrast"], e, fs::ops::basic_edits::contrast));
-			m["contrast"] = e;
-			show_image();
-		} else {
-			QMessageBox::warning(this, "Warning", "No image to adjust.");
-		}
-	});
+	auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Shadows", "Highlights"})};
+	slider_operation(basic_sliders, "Brightness", fs::ops::basic_edits::brightness);
+	slider_operation(basic_sliders, "Contrast", fs::ops::basic_edits::contrast);
+	slider_operation(basic_sliders, "Shadows", fs::ops::basic_edits::shadows);
+	slider_operation(basic_sliders, "Highlights", fs::ops::basic_edits::highlights);
 
 	// Create advanced photo adjustment sliders
 	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur"})};
-	advanced_sliders.back()->setSliderPosition(0);
-	advanced_sliders.front()->setSliderPosition(0);
+	slider_operation(advanced_sliders, "Sharpen", fs::ops::basic_edits::sharpen, 0);
+	slider_operation(advanced_sliders, "Vignette", fs::ops::basic_edits::vignette);
+	slider_operation(advanced_sliders, "Blur", fs::ops::basic_edits::blur, 0);
 
 	// Create color photo adjustment sliders
     auto color_sliders{create_section("Color settings", {"Saturation", "Luminance", "Temperature"})};
-
-	QObject::connect(color_sliders[0], &QSlider::sliderMoved, [&](auto &&e) {
-		if(m_has_image) {
-			push_operation(new fs::ops::BasicEditOperation(m["saturation"], e, fs::ops::basic_edits::saturation));
-			m["saturation"] = e;
-			show_image();
-		} else {
-			QMessageBox::warning(this, "Warning", "No image to adjust.");
-		}
-	});
+	slider_operation(color_sliders, "Saturation", fs::ops::basic_edits::saturation);
+	slider_operation(color_sliders, "Luminance", fs::ops::basic_edits::luminance);
+	slider_operation(color_sliders, "Temperature", fs::ops::basic_edits::temperature);
 
     // TODO: Add color selection
 	// Create individual color photo adjustment sliders
@@ -164,6 +143,22 @@ void MainWindow::pop_operation()
     m_bwd_ops.emplace_back(std::move(op));
 }
 
+void MainWindow::slider_operation(qstring_map<QSlider*> &sliders, const QString &key, fs::ops::basic_edits edit, int value)
+{
+	m_adjustment_map[key] = value;
+	sliders[key]->setSliderPosition(value);
+
+	QObject::connect(sliders[key], &QSlider::sliderMoved, [key, edit, this](auto &&e) {
+		if(m_has_image) {
+			push_operation(new fs::ops::BasicEditOperation(m_adjustment_map[key], e, edit));
+			m_adjustment_map[key] = e;
+			show_image();
+		} else {
+			QMessageBox::warning(this, "Warning", "No image to adjust.");
+		}
+	});
+}
+
 void MainWindow::on_action_Open_triggered()
 {
     if(m_has_image) {
@@ -186,31 +181,27 @@ void MainWindow::on_action_Open_triggered()
 	}
 }
 
-std::vector<QSlider*> MainWindow::create_section(QString name, const std::vector<QString> &contents)
+qstring_map<QSlider*> MainWindow::create_section(QString name, const std::vector<QString> &contents)
 {
     Section *section{new Section(name, 300, this)};
 	m_sections.push_back(section);
 	ui->hlSide->addWidget(section);
 
     auto *vbox{new QVBoxLayout()};
-    std::vector<QSlider*> sliders;
+	qstring_map<QSlider*> sliders;
 
 	for(auto &&e : contents)
 	{
         vbox->addWidget(new QLabel(e, section));
-        sliders.push_back(new QSlider(Qt::Horizontal, section));
-        vbox->addWidget(sliders.back());
+		sliders[e] = new QSlider(Qt::Horizontal, section);
+		vbox->addWidget(sliders[e]);
 	}
-
-	for (auto &&e : sliders) {
-        e->setSliderPosition(50);
-    }
 
     section->setContentLayout(*vbox);
     return sliders;
 }
 
-std::pair<std::vector<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons)
+std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons)
 {
     Section *section{new Section(name, 300, this)};
 	m_sections.push_back(section);
@@ -232,18 +223,14 @@ std::pair<std::vector<QSlider*>, QButtonGroup*> MainWindow::create_section(QStri
     rbuttons->setLayout(hbox);
 
     auto *vbox{new QVBoxLayout()};
-    std::vector<QSlider*> sliders;
+	qstring_map<QSlider*> sliders;
     vbox->addWidget(rbuttons);
 
     for(auto &&e : contents)
     {
         vbox->addWidget(new QLabel(e, section));
-        sliders.push_back(new QSlider(Qt::Horizontal, section));
-        vbox->addWidget(sliders.back());
-    }
-
-	for (auto &&e : sliders) {
-        e->setSliderPosition(50);
+		sliders[e] = new QSlider(Qt::Horizontal, section);
+		vbox->addWidget(sliders[e]);
     }
 
 	if(buttons) {

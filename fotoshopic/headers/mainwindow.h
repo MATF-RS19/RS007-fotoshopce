@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <unordered_map>
+
 #include <QMainWindow>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -25,13 +27,18 @@
 #include "abstract_operation.h"
 #include "image.h"
 #include "section.h"
+#include "utils.h"
+#include "edit_operations.h"
 
+template <typename T>
+using qstring_map = std::unordered_map<QString, T>;
 
 namespace Ui { class MainWindow; }
 
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
+		void slider_operation(qstring_map<QSlider*> &sliders, const QString &key, fs::ops::basic_edits edit, int value = 50);
 
 	// Public member functions
 	public:
@@ -60,8 +67,8 @@ class MainWindow : public QMainWindow
 		void save_image(const std::string& fileName);
         void push_operation(fs::ops::AbstractOperation *op);
         void pop_operation();
-        std::vector<QSlider*> create_section(QString name, const std::vector<QString> &contents);
-        std::pair<std::vector<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons);
+		qstring_map<QSlider*> create_section(QString name, const std::vector<QString> &contents);
+		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons);
 	// Private variables
 	private:
 		// Define the image
@@ -70,8 +77,8 @@ class MainWindow : public QMainWindow
 		Image img;
 		std::vector<std::unique_ptr<fs::ops::AbstractOperation>> m_fwd_ops, m_bwd_ops;
 		bool m_has_image;
+		qstring_map<int> m_adjustment_map;
 		std::vector<Section*> m_sections;
-		std::unordered_map<std::string, int> m{ {"brightness", 50}, {"contrast", 50}, {"saturation", 50} };
 };
 
 #endif // MAINWINDOW_H
