@@ -77,7 +77,7 @@ class MainWindow : public QMainWindow
 		Image img;
 		std::vector<std::unique_ptr<fs::ops::AbstractOperation>> m_fwd_ops, m_bwd_ops;
 		bool m_has_image;
-		qstring_map<int> m_adjustment_map;
+		qstring_map<std::pair<int, int>> m_adjustment_map;
 		std::vector<Section*> m_sections;
 };
 

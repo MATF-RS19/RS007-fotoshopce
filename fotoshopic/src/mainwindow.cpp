@@ -145,13 +145,15 @@ void MainWindow::pop_operation()
 
 void MainWindow::slider_operation(qstring_map<QSlider*> &sliders, const QString &key, fs::ops::basic_edits edit, int value)
 {
-	m_adjustment_map[key] = value;
+	m_adjustment_map[key] = {value, value};
 	sliders[key]->setSliderPosition(value);
 
-	QObject::connect(sliders[key], &QSlider::sliderMoved, [key, edit, this](auto &&e) {
+	QObject::connect(sliders[key], &QSlider::sliderMoved, [key, this](auto &&e) { m_adjustment_map[key].second = e; });
+
+	QObject::connect(sliders[key], &QSlider::sliderReleased, [key, edit, this]() {
 		if(m_has_image) {
-			push_operation(new fs::ops::BasicEditOperation(img, m_adjustment_map[key], e, edit));
-			m_adjustment_map[key] = e;
+			push_operation(new fs::ops::BasicEditOperation(img, m_adjustment_map[key].first, m_adjustment_map[key].second, edit));
+			m_adjustment_map[key].first = m_adjustment_map[key].second;
 			show_image();
 		} else {
 			QMessageBox::warning(this, "Warning", "No image to adjust.");

@@ -27,9 +27,9 @@ namespace fs::ops
 			case fs::ops::basic_edits::contrast:
 			{
 				if(diff < 0) {
-					img.m_img.convertTo(img.m_img, -1, 0.9, 0);
+					img.m_img.convertTo(img.m_img, -1, 0.5, 0);
 				} else {
-					img.m_img.convertTo(img.m_img, -1, 1.1, 0);
+					img.m_img.convertTo(img.m_img, -1, 1.5, 0);
 				}
 
 				break;
