@@ -29,23 +29,49 @@ MainWindow::MainWindow(QWidget *parent)
     // TODO: Add slots and signals for sliders
 	ui->hlSide->setAlignment(Qt::AlignTop);
 
+	// Create basic photo adjustment sliders
     auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Shadows", "Highlights", "Whites", "Blacks"})};
 
 	QObject::connect(basic_sliders[0], &QSlider::sliderMoved, [&](auto &&e) {
-		push_operation(new fs::ops::BasicEditOperation(m["brightness"], e, fs::ops::basic_edits::brightness));
-		m["brightness"] = e;
-		show_image();
+		if(m_has_image) {
+			push_operation(new fs::ops::BasicEditOperation(m["brightness"], e, fs::ops::basic_edits::brightness));
+			m["brightness"] = e;
+			show_image();
+		} else {
+			QMessageBox::warning(this, "Warning", "No image to adjust.");
+		}
 	});
 
 	QObject::connect(basic_sliders[1], &QSlider::sliderMoved, [&](auto &&e) {
-		push_operation(new fs::ops::BasicEditOperation(m["contrast"], e, fs::ops::basic_edits::contrast));
-		m["contrast"] = e;
-		show_image();
+		if(m_has_image) {
+			push_operation(new fs::ops::BasicEditOperation(m["contrast"], e, fs::ops::basic_edits::contrast));
+			m["contrast"] = e;
+			show_image();
+		} else {
+			QMessageBox::warning(this, "Warning", "No image to adjust.");
+		}
 	});
 
-	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur", "Fade"})};
+	// Create advanced photo adjustment sliders
+	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur"})};
+	advanced_sliders.back()->setSliderPosition(0);
+	advanced_sliders.front()->setSliderPosition(0);
+
+	// Create color photo adjustment sliders
     auto color_sliders{create_section("Color settings", {"Saturation", "Luminance", "Temperature"})};
+
+	QObject::connect(color_sliders[0], &QSlider::sliderMoved, [&](auto &&e) {
+		if(m_has_image) {
+			push_operation(new fs::ops::BasicEditOperation(m["saturation"], e, fs::ops::basic_edits::saturation));
+			m["saturation"] = e;
+			show_image();
+		} else {
+			QMessageBox::warning(this, "Warning", "No image to adjust.");
+		}
+	});
+
     // TODO: Add color selection
+	// Create individual color photo adjustment sliders
     auto color_individual_sliders{create_section("Individual color settings", {"Hue", "Saturation", "Luminance"}, 3)};
 
 	// Setting Widget params
@@ -72,11 +98,11 @@ void MainWindow::show_image() const
 		cv::Mat tmp;
 
 		// Show the image either as a colored image or a grayscale image
-		if (0 == img.mType) {
-			cv::cvtColor(img.mImg, tmp, cv::COLOR_BGR2GRAY);
+		if (0 == img.m_type) {
+			cv::cvtColor(img.m_img, tmp, cv::COLOR_BGR2GRAY);
 			m_lb_image->setPixmap(QPixmap::fromImage(QImage(tmp.data, tmp.cols, tmp.rows, int(tmp.step), QImage::Format_Indexed8)));
-		} else if (1 == img.mType) {
-			cv::cvtColor(img.mImg, tmp, cv::COLOR_BGR2RGB);
+		} else if (1 == img.m_type) {
+			cv::cvtColor(img.m_img, tmp, cv::COLOR_BGR2RGB);
 			m_lb_image->setPixmap(QPixmap::fromImage(QImage(tmp.data, tmp.cols, tmp.rows, int(tmp.step), QImage::Format_RGB888)));
 		}
 	} else {
@@ -90,9 +116,9 @@ void MainWindow::save_image(const std::string& fileName)
 		cv::Mat tmp;
 
 		// Save image as either a colored image or a grayscale image
-		if (0 == img.mType)
+		if (0 == img.m_type)
 			cv::cvtColor(tmp, tmp, cv::COLOR_BGR2GRAY);
-		else if (1 == img.mType)
+		else if (1 == img.m_type)
 			cv::cvtColor(tmp, tmp, cv::COLOR_BGR2RGB);
 
 		cv::imwrite(fileName, tmp);
@@ -207,7 +233,7 @@ std::pair<std::vector<QSlider*>, QButtonGroup*> MainWindow::create_section(QStri
 void MainWindow::on_action_Save_triggered()
 {
 	if (m_has_image) {
-		save_image(img.mFileName);
+		save_image(img.m_filename);
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -229,8 +255,8 @@ void MainWindow::on_action_ZoomIn_triggered()
 {
 	if (m_has_image) {
 		cv::Mat tmp;
-		cv::resize(img.mImg, tmp, cv::Size(), 1.1, 1.1);
-		img.mImg = tmp;
+		cv::resize(img.m_img, tmp, cv::Size(), 1.1, 1.1);
+		img.m_img = tmp;
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -242,8 +268,8 @@ void MainWindow::on_action_ZoomOut_triggered()
 {
 	if (m_has_image) {
 		cv::Mat tmp;
-		cv::resize(img.mImg, tmp, cv::Size(), 0.9, 0.9);
-		img.mImg = tmp;
+		cv::resize(img.m_img, tmp, cv::Size(), 0.9, 0.9);
+		img.m_img = tmp;
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -284,7 +310,7 @@ void MainWindow::on_action_Rotate_right_triggered()
 void MainWindow::on_btRGB_triggered()
 {
 	if (m_has_image) {
-		img.mType = 1;
+		img.m_type = 1;
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -294,7 +320,7 @@ void MainWindow::on_btRGB_triggered()
 void MainWindow::on_btGray_triggered()
 {
 	if (m_has_image) {
-		img.mType = 0;
+		img.m_type = 0;
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");

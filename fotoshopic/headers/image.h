@@ -26,9 +26,9 @@ class Image
 		//    double getCurrentZoom() const;
 
 		// Defining image
-		cv::Mat mImg;
-		std::string mFileName;
+		cv::Mat m_img;
+		std::string m_filename;
 
 		// Image params
-		int mType = 1;
+		int m_type = 1;
 };

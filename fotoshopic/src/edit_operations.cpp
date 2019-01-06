@@ -20,25 +20,22 @@ namespace fs::ops
 		switch(m_edit) {
 			case fs::ops::basic_edits::brightness:
 			{
-				auto const_beta{1.0};
-				auto beta{const_beta * diff};
-
-				img.mImg = img.mImg + cv::Scalar(beta, beta, beta);
+				img.m_img.convertTo(img.m_img, -1, 1, diff);
 				break;
 			}
 			case fs::ops::basic_edits::contrast:
 			{
-				auto alpha{0.0};
 				if(diff < 0) {
-					auto const_alpha{0.001f};
-					alpha = const_alpha * diff;
+					img.m_img.convertTo(img.m_img, -1, 0.9, 0);
 				} else {
-					auto const_alpha{1.0};
-					alpha = const_alpha * diff;
+					img.m_img.convertTo(img.m_img, -1, 1.1, 0);
 				}
 
-				img.mImg = alpha * img.mImg;
-
+				break;
+			}
+			case fs::ops::basic_edits::saturation:
+			{
+				img.m_img.convertTo(img.m_img, CV_8UC1, 1, diff);
 				break;
 			}
 			default:
