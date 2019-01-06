@@ -90,7 +90,9 @@ MainWindow::MainWindow(QWidget *parent)
 	for(auto *section : m_sections)
 	{
 		QObject::connect(section->toggle(), &QToolButton::clicked, [section, this](auto &&clicked) {
-			if(clicked) {
+			static_cast<void>(clicked);
+
+			if(!section->open()) {
 				for(auto *e : m_sections)
 				{
 					if(*e != *section) {
@@ -99,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent)
 				}
 			}
 
-			if(clicked) {
+			if(!section->open()) {
 				section->expand();
 			} else {
 				section->colapse();
