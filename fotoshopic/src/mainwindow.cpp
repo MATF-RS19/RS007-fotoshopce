@@ -150,7 +150,7 @@ void MainWindow::slider_operation(qstring_map<QSlider*> &sliders, const QString 
 
 	QObject::connect(sliders[key], &QSlider::sliderMoved, [key, edit, this](auto &&e) {
 		if(m_has_image) {
-			push_operation(new fs::ops::BasicEditOperation(m_adjustment_map[key], e, edit));
+			push_operation(new fs::ops::BasicEditOperation(img, m_adjustment_map[key], e, edit));
 			m_adjustment_map[key] = e;
 			show_image();
 		} else {
@@ -265,7 +265,7 @@ void MainWindow::on_action_SaveAs_triggered()
 void MainWindow::on_action_ZoomIn_triggered()
 {
 	if (m_has_image) {
-		push_operation(new fs::ops::ResizeOperation(int(img.m_img.cols*1.1), int(img.m_img.rows*1.1)));
+		push_operation(new fs::ops::ResizeOperation(img, int(img.m_img.cols*1.1), int(img.m_img.rows*1.1)));
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -276,7 +276,7 @@ void MainWindow::on_action_ZoomIn_triggered()
 void MainWindow::on_action_ZoomOut_triggered()
 {
 	if (m_has_image) {
-		push_operation(new fs::ops::ResizeOperation(int(img.m_img.cols*0.9), int(img.m_img.rows*0.9)));
+		push_operation(new fs::ops::ResizeOperation(img, int(img.m_img.cols*0.9), int(img.m_img.rows*0.9)));
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -286,7 +286,7 @@ void MainWindow::on_action_ZoomOut_triggered()
 void MainWindow::on_action_Mirror_triggered()
 {
 	if (m_has_image) {
-        push_operation(new fs::ops::MirrorOperation);
+		push_operation(new fs::ops::MirrorOperation(img));
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -296,7 +296,7 @@ void MainWindow::on_action_Mirror_triggered()
 void MainWindow::on_action_Rotate_left_triggered()
 {
     if (m_has_image) {
-        push_operation(new fs::ops::RotateLeftOperation);
+		push_operation(new fs::ops::RotateLeftOperation(img));
         show_image();
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -306,7 +306,7 @@ void MainWindow::on_action_Rotate_left_triggered()
 void MainWindow::on_action_Rotate_right_triggered()
 {
     if (m_has_image) {
-        push_operation(new fs::ops::RotateRightOperation);
+		push_operation(new fs::ops::RotateRightOperation(img));
         show_image();
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -379,7 +379,7 @@ void MainWindow::on_action_Resize_triggered()
 
 		// TODO: Check if its int, maybe leaking memory idk
 		if (dialog.exec() == QDialog::Accepted) {
-            push_operation(new fs::ops::ResizeOperation(fields[0]->text().toInt(), fields[1]->text().toInt()));
+			push_operation(new fs::ops::ResizeOperation(img, fields[0]->text().toInt(), fields[1]->text().toInt()));
 			show_image();
 		}
 
