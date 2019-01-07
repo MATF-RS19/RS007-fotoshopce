@@ -35,7 +35,8 @@ SOURCES += src/image.cpp \
            src/section.cpp \
 		   src/image_operations.cpp \
 		   src/edit_operations.cpp \
-		   src/abstract_operation.cpp
+		   src/abstract_operation.cpp \
+		   src/image_params.cpp
 
 HEADERS += headers/image.h \
            headers/mainwindow.h \
@@ -44,7 +45,8 @@ HEADERS += headers/image.h \
 		   headers/image_operations.h \
 		   headers/edit_operations.h \
 		   headers/color_operations.h \
-    headers/utils.h
+           headers/utils.h \
+           headers/image_params.h
 
 FORMS += forms/mainwindow.ui
 

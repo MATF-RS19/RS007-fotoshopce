@@ -2,9 +2,14 @@
 
 
 #include <iostream>
+#include <vector>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/highgui.hpp"
+
+#include "headers/image_params.h"
 
 
 /*
@@ -15,20 +20,16 @@ class Image
 	public:
 		Image(const cv::Mat& img, const std::string& filename);
 		Image();
-		Image(const Image& im);
-		Image(Image&& im);
 		~Image();
-		Image operator=(const Image& im);
-		Image operator=(Image&& im);
-		//    void setType(int type);
-		//    void setCurrentZoom(double zoom);
-		//    int getType() const;
-		//    double getCurrentZoom() const;
 
 		// Defining image
 		cv::Mat m_img;
 		std::string m_filename;
 
 		// Image params
-		int m_type = 1;
+		int m_type;
+
+		std::vector<image_params> param_list;
+		unsigned long index;
+		cv::Mat get_current() const;
 };
