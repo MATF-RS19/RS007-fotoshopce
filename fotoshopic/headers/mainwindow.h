@@ -1,7 +1,6 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
-#include <unordered_map>
+#include <vector>
 
 #include <QMainWindow>
 #include <QHBoxLayout>
@@ -24,11 +23,9 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "abstract_operation.h"
 #include "image.h"
 #include "section.h"
 #include "utils.h"
-#include "edit_operations.h"
 
 template <typename T>
 using qstring_map = std::unordered_map<QString, T>;
@@ -38,7 +35,6 @@ namespace Ui { class MainWindow; }
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
-		void slider_operation(qstring_map<QSlider*> &sliders, const QString &key, fs::ops::basic_edits edit, int value = 50);
 
 	// Public member functions
 	public:
@@ -65,20 +61,23 @@ class MainWindow : public QMainWindow
     private:
 		void show_image() const;
 		void save_image(const std::string& fileName);
-        void push_operation(fs::ops::AbstractOperation *op);
+//      void push_operation(fs::ops::AbstractOperation *op);
+//		void slider_operation(qstring_map<QSlider*> &sliders, const QString &key, fs::ops::basic_edits edit, int value = 50);
         void pop_operation();
 		qstring_map<QSlider*> create_section(QString name, const std::vector<QString> &contents);
 		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons);
+		void delete_after_redo();
 	// Private variables
 	private:
 		// Define the image
 		QLabel* m_lb_image;
 		Ui::MainWindow *ui;
 		Image img;
-		std::vector<std::unique_ptr<fs::ops::AbstractOperation>> m_fwd_ops, m_bwd_ops;
+//		std::vector<std::unique_ptr<fs::ops::AbstractOperation>> m_fwd_ops, m_bwd_ops;
 		bool m_has_image;
 		qstring_map<std::pair<int, int>> m_adjustment_map;
 		std::vector<Section*> m_sections;
+		std::vector<Image> image_list;
+		unsigned long index;
 };
 
-#endif // MAINWINDOW_H
