@@ -40,7 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
 	// Create advanced photo adjustment sliders
 	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur"})};
 	slider_operation(advanced_sliders, "Sharpen", fs::ops::basic_edits::sharpen, 0);
-	slider_operation(advanced_sliders, "Vignette", fs::ops::basic_edits::vignette);
+	slider_operation(advanced_sliders, "Vignette", fs::ops::basic_edits::vignette, 0);
 	slider_operation(advanced_sliders, "Blur", fs::ops::basic_edits::blur, 0);
 
 	// Create color photo adjustment sliders

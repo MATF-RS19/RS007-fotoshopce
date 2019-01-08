@@ -1,5 +1,9 @@
 #include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/opencv.hpp"
+#include "opencv2/core/core.hpp"
 
+#include <cmath>
 
 #include "../headers/edit_operations.h"
 
@@ -56,6 +60,24 @@ namespace fs::ops
 
 				GaussianBlur(img.m_img, gaussblur, cv::Size(0, 0), std::abs(diff) / 8);
 				addWeighted(img.m_img, 1.5, gaussblur, -0.5, 0, img.m_img);
+
+				break;
+			}
+			case fs::ops::basic_edits::vignette:
+			{
+				double cols{static_cast<double>(img.m_img.cols / 2)}, rows{static_cast<double>(img.m_img.rows / 2)};
+				double max_dis{(1.7 - (1.3 / 99 * (m_to - 99) + 1.5))* std::sqrt(cols * cols + rows * rows)}, temp;
+
+				for (int i = 0; i < img.m_img.rows; ++i) {
+					for (int j = 0; j < img.m_img.cols; ++j) {
+						double dist{std::sqrt(std::pow((cols - j), 2) + std::pow((rows - i), 2))};
+						temp = std::cos(dist / max_dis);
+						temp *= temp;
+						img.m_img.at<cv::Vec3b>(i, j)[0] = cv::saturate_cast<uchar>((img.m_img.at<cv::Vec3b>(i, j)[0]) * temp);
+						img.m_img.at<cv::Vec3b>(i, j)[1] = cv::saturate_cast<uchar>((img.m_img.at<cv::Vec3b>(i, j)[1]) * temp );
+						img.m_img.at<cv::Vec3b>(i, j)[2] = cv::saturate_cast<uchar>((img.m_img.at<cv::Vec3b>(i, j)[2]) * temp);
+					}
+				}
 
 				break;
 			}
