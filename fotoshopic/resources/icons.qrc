@@ -1,8 +1,8 @@
 <RCC>
     <qresource prefix="/icons">
         <file>icons/crop.jpeg</file>
-	<file>icons/rotate_left.jpeg</file>
-	<file>icons/rotate_right.jpeg</file>
+        <file>icons/rotate_left.jpeg</file>
+        <file>icons/rotate_right.jpeg</file>
         <file>icons/delete.png</file>
         <file>icons/draw.png</file>
         <file>icons/exit.png</file>
@@ -15,5 +15,7 @@
         <file>icons/undo.png</file>
         <file>icons/zoom.png</file>
         <file>icons/zoom_out.png</file>
+	<file>QTDark.stylesheet</file>
     </qresource>
+    
 </RCC>
