@@ -67,6 +67,7 @@ cv::Mat Image::get_current()
 			cv::flip(new_image, new_image, 1);
 	}
 
+	// TODO: Fix it [d]
 	int contrast_from{param_list[index].m_adjustment_map[QString::fromStdString("Contrast")].first};
 	int brightness_from{param_list[index].m_adjustment_map[QString::fromStdString("Brightness")].first};
 	int blur_from{param_list[index].m_adjustment_map[QString::fromStdString("Blur")].first};
@@ -81,34 +82,37 @@ cv::Mat Image::get_current()
 
 	// Setting the image contrast value if it changed
 	if(contrast_to - contrast_from < 0) {
-		new_image.convertTo(new_image, -1, 0.5, 0);
+		new_image.convertTo(new_image, -1, 0.9, 0);
 	} else if(contrast_to - contrast_from > 0) {
-		new_image.convertTo(new_image, -1, 1.5, 0);
+		new_image.convertTo(new_image, -1, 1.1, 0);
 	}
 
 	// Setting the image brightness value if it changed
 	if(brightness_to - brightness_from) {
-		int diff = brightness_to - brightness_from;
-		new_image.convertTo(new_image, -1, 1, diff);
+		new_image.convertTo(new_image, -1, 1, brightness_to - brightness_from);
 	}
 
 	// Setting the image blur value if it changed
-	if(blur_to - blur_from) {
+	if(blur_to - blur_from > 0) {
 		double sigma(std::abs(blur_to - blur_from));
 		cv::GaussianBlur(new_image, new_image, cv::Size(11, 11), sigma);
 		cv::addWeighted(new_image, 2.5, new_image, -1.5, 0, new_image);
+	} else {
+		// TODO: Decrease blur
 	}
 
 	// Setting the image sharpness value if it changed
-	if(sharpen_to - sharpen_from) {
+	if(sharpen_to - sharpen_from > 0) {
 		cv::Mat gaussian;
 		double sigma(std::abs(sharpen_to - sharpen_from));
 		cv::GaussianBlur(new_image, gaussian, cv::Size(0, 0), sigma);
 		cv::addWeighted(new_image, 1.5, gaussian, -0.5, 0, new_image);
+	} else {
+		// TODO: Decrease sharpness
 	}
 
 	// Adjusting vignette effect to the image if needed
-	if(vignette_to - vignette_from) {
+	if(vignette_to - vignette_from > 0) {
 		double cols{static_cast<double>(new_image.cols / 2)}, rows{static_cast<double>(new_image.rows / 2)};
 		double max_dis{(1.7 - (1.3 / 99 * (vignette_to - 99) + 1.5)) * std::sqrt(cols * cols + rows * rows)}, temp;
 
@@ -118,10 +122,12 @@ cv::Mat Image::get_current()
 				temp = std::cos(dist / max_dis);
 				temp *= temp;
 				new_image.at<cv::Vec3b>(i, j)[0] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[0]) * temp);
-				new_image.at<cv::Vec3b>(i, j)[1] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[1]) * temp );
+				new_image.at<cv::Vec3b>(i, j)[1] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[1]) * temp);
 				new_image.at<cv::Vec3b>(i, j)[2] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[2]) * temp);
 			}
 		}
+	} else {
+		// TODO: Decrease vignette effect
 	}
 
 	return new_image;
