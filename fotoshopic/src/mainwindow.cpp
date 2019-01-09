@@ -542,7 +542,7 @@ void MainWindow::on_action_Redo_triggered()
 			m_image_list[m_image_index].index++;
 		}
 
-		if(m_slider_index < m_sliders.size()) {
+		if(m_slider_index < m_slider_values.size() - 1) {
 			m_slider_index++;
 			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
 				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
