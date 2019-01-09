@@ -29,7 +29,7 @@ class Image
 		// Image params
 		int m_type;
 
-		std::vector<image_params> param_list;
+		std::vector<ImageParams> param_list;
 		unsigned long index{0};
 		cv::Mat get_current();
 };

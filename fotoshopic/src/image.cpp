@@ -3,7 +3,7 @@
 Image::Image(const cv::Mat& img, const std::string& fileName)
 	: m_img(img), m_filename(fileName), m_type{1}
 {
-	image_params tmp;
+	ImageParams tmp;
 	param_list.push_back(tmp);
 	index = 0;
 }
@@ -67,54 +67,56 @@ cv::Mat Image::get_current()
 			cv::flip(new_image, new_image, 1);
 	}
 
-	// TODO: Fix it [d]
-	int contrast_from{param_list[index].m_adjustment_map[QString::fromStdString("Contrast")].first};
-	int brightness_from{param_list[index].m_adjustment_map[QString::fromStdString("Brightness")].first};
-	int blur_from{param_list[index].m_adjustment_map[QString::fromStdString("Blur")].first};
-	int sharpen_from{param_list[index].m_adjustment_map[QString::fromStdString("Sharpen")].first};
-	int vignette_from{param_list[index].m_adjustment_map[QString::fromStdString("Vignette")].first};
+	int brightness{param_list[index].adjustment_map[QString::fromStdString("Brightness")]};
+	int contrast{param_list[index].adjustment_map[QString::fromStdString("Contrast")]};
+	int blur{param_list[index].adjustment_map[QString::fromStdString("Blur")]};
+	int sharpen{param_list[index].adjustment_map[QString::fromStdString("Sharpen")]};
+	int vignette{param_list[index].adjustment_map[QString::fromStdString("Vignette")]};
 
-	int contrast_to{param_list[index].m_adjustment_map[QString::fromStdString("Contrast")].second};
-	int brightness_to{param_list[index].m_adjustment_map[QString::fromStdString("Brightness")].second};
-	int blur_to{param_list[index].m_adjustment_map[QString::fromStdString("Blur")].second};
-	int sharpen_to{param_list[index].m_adjustment_map[QString::fromStdString("Sharpen")].second};
-	int vignette_to{param_list[index].m_adjustment_map[QString::fromStdString("Vignette")].second};
+	// Set initial brightness value
+	double brightness_value{0};
 
-	// Setting the image contrast value if it changed
-	if(contrast_to - contrast_from < 0) {
-		new_image.convertTo(new_image, -1, 0.99, 0);
-	} else if(contrast_to - contrast_from > 0) {
-		new_image.convertTo(new_image, -1, 1.01, 0);
+	// Calculate the new brightness value if it changed
+	if(brightness < 50) {
+		brightness_value = (50 - brightness) * (-63 / 50);
+	} else if(brightness > 50) {
+		brightness_value = (brightness - 50) * (63 / 50);
 	}
 
-	// Setting the image brightness value if it changed
-	if(brightness_to - brightness_from) {
-		new_image.convertTo(new_image, -1, 1, brightness_to - brightness_from);
+	// Setting the image brightness
+	cv::add(new_image, cv::Scalar(brightness_value, brightness_value, brightness_value), new_image);
+
+	// Set initial contrast value
+	double contrast_value{1};
+
+	// Calculate the new contrast value if it changed
+	if(contrast < 50) {
+		contrast_value = contrast * (0.9 / 50);
+	} else if(contrast > 50) {
+		contrast_value = contrast * (1.2 / 50);
 	}
+
+	// Setting the image contrast
+	cv::multiply(new_image, cv::Scalar(contrast_value, contrast_value, contrast_value), new_image);
+
 
 	// Setting the image blur value if it changed
-	if(blur_to - blur_from > 0) {
-		double sigma(std::abs(blur_to - blur_from));
-		cv::GaussianBlur(new_image, new_image, cv::Size(11, 11), sigma);
+	if(blur) {
+		cv::GaussianBlur(new_image, new_image, cv::Size(11, 11), blur);
 		cv::addWeighted(new_image, 2.5, new_image, -1.5, 0, new_image);
-	} else {
-		// TODO: Decrease blur
 	}
 
 	// Setting the image sharpness value if it changed
-	if(sharpen_to - sharpen_from > 0) {
+	if(sharpen) {
 		cv::Mat gaussian;
-		double sigma(std::abs(sharpen_to - sharpen_from));
-		cv::GaussianBlur(new_image, gaussian, cv::Size(0, 0), sigma);
+		cv::GaussianBlur(new_image, gaussian, cv::Size(11, 11), sharpen);
 		cv::addWeighted(new_image, 1.5, gaussian, -0.5, 0, new_image);
-	} else {
-		// TODO: Decrease sharpness
 	}
 
 	// Adjusting vignette effect to the image if needed
-	if(vignette_to - vignette_from > 0) {
+	if(vignette) {
 		double cols{static_cast<double>(new_image.cols / 2)}, rows{static_cast<double>(new_image.rows / 2)};
-		double max_dis{(1.7 - (1.3 / 99 * (vignette_to - 99) + 1.5)) * std::sqrt(cols * cols + rows * rows)}, temp;
+		double max_dis{(1.7 - (1.3 / 99 * (vignette - 99) + 1.5)) * std::sqrt(cols * cols + rows * rows)}, temp;
 
 		for (int i = 0; i < new_image.rows; ++i) {
 			for (int j = 0; j < new_image.cols; ++j) {
@@ -126,8 +128,6 @@ cv::Mat Image::get_current()
 				new_image.at<cv::Vec3b>(i, j)[2] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[2]) * temp);
 			}
 		}
-	} else {
-		// TODO: Decrease vignette effect
 	}
 
 	return new_image;

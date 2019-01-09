@@ -3,6 +3,8 @@
 #include "headers/utils.h"
 #include "headers/section.h"
 
+#include <iostream>
+
 
 /*
 * @brief Builds instance of MainWindow.
@@ -27,11 +29,9 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->hlSide->setAlignment(Qt::AlignTop);
 
 	// Create basic photo adjustment sliders
-	auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Shadows", "Highlights"})};
+	auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast"})};
 	slider_operation(basic_sliders, "Brightness");
 	slider_operation(basic_sliders, "Contrast");
-	slider_operation(basic_sliders, "Shadows");
-	slider_operation(basic_sliders, "Highlights");
 
 	// Create advanced photo adjustment sliders
 	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur"})};
@@ -141,18 +141,15 @@ void MainWindow::slider_operation(qstring_map<QSlider*> sliders, const QString &
 
 	QObject::connect(sliders[key], &QSlider::sliderMoved, [this, key](auto &&e) {
 		if(m_has_image) {
-			if(index) {
-				image_list[index].param_list[image_list[index].index].m_adjustment_map[key].first = image_list[index-1].param_list[image_list[index-1].index].m_adjustment_map[key].second;
-			} else {
-				image_list[index].param_list[image_list[index].index].m_adjustment_map[key].first = image_list[index].param_list[image_list[index].index].m_adjustment_map[key].second;
-			}
-
-			image_list[index].param_list[image_list[index].index].m_adjustment_map[key].second = e;
+			image_list[index].param_list[image_list[index].index].adjustment_map[key] = e;
 
 			cv::Mat current{image_list[index].get_current()};
-			Image img{current, image_list[index].m_filename};
-			image_list.push_back(img);
-			index++;
+			Image img(current, image_list[index].m_filename);
+
+			ImageParams params{image_list[index].param_list[image_list[index].index]};
+			image_list[index].param_list.push_back(params);
+			image_list[index].index++;
+
 			delete_after_redo();
 			show_image();
 		} else {
@@ -326,7 +323,7 @@ void MainWindow::on_action_ZoomOut_triggered()
 void MainWindow::on_action_Mirror_triggered()
 {
 	if (m_has_image) {
-		image_params params{image_list[index].param_list[image_list[index].index]};
+		ImageParams params{image_list[index].param_list[image_list[index].index]};
 		std::swap(params.topleft_corner, params.topright_corner);
 		std::swap(params.bottomleft_corner, params.bottomright_corner);
 		image_list[index].param_list.push_back(params);
@@ -344,7 +341,7 @@ void MainWindow::on_action_Mirror_triggered()
 void MainWindow::on_action_Rotate_left_triggered()
 {
     if (m_has_image) {
-		image_params params{image_list[index].param_list[image_list[index].index]};
+		ImageParams params{image_list[index].param_list[image_list[index].index]};
 		int a{params.topleft_corner}, b{params.topright_corner}, c{params.bottomleft_corner}, d{params.bottomright_corner};
 		params.topleft_corner = b;
 		params.topright_corner = d;
@@ -365,7 +362,7 @@ void MainWindow::on_action_Rotate_left_triggered()
 void MainWindow::on_action_Rotate_right_triggered()
 {
     if (m_has_image) {
-		image_params params{image_list[index].param_list[image_list[index].index]};
+		ImageParams params{image_list[index].param_list[image_list[index].index]};
 		int a{params.topleft_corner}, b{params.topright_corner}, c{params.bottomleft_corner}, d{params.bottomright_corner};
 		params.topleft_corner = c;
 		params.topright_corner = a;
@@ -528,11 +525,11 @@ void MainWindow::on_action_Redo_triggered()
 * @brief Delete the adjusted image after redoing adjustments.
 */
 void MainWindow::delete_after_redo() {
-	if (image_list.begin() + int(index) != image_list.end()) {
+	if (index != image_list.size()) {
 		image_list.erase(image_list.begin() + int(index) + 1, image_list.end());
 	}
 
-	if (image_list[index].param_list.begin() + int(image_list[index].index) != image_list[index].param_list.end()) {
+	if (image_list[index].index != image_list[index].param_list.size()) {
 		image_list[index].param_list.erase(image_list[index].param_list.begin() + int(image_list[index].index) + 1,
 										   image_list[index].param_list.end());
 	}
