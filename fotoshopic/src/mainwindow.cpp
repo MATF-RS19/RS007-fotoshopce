@@ -515,9 +515,11 @@ void MainWindow::on_action_Undo_triggered()
 			m_image_list[m_image_index].index--;
 		}
 
-		m_slider_index--;
-		for(auto &&slider_pair : m_slider_values[m_slider_index]) {
-			m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
+		if(m_slider_index) {
+			m_slider_index--;
+			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
+				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
+			}
 		}
 
 		show_image();
@@ -540,9 +542,11 @@ void MainWindow::on_action_Redo_triggered()
 			m_image_list[m_image_index].index++;
 		}
 
-		m_slider_index++;
-		for(auto &&slider_pair : m_slider_values[m_slider_index]) {
-			m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
+		if(m_slider_index < m_sliders.size()) {
+			m_slider_index++;
+			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
+				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
+			}
 		}
 
 		show_image();
