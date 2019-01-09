@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
 		ui{new Ui::MainWindow},
 		m_lb_image{new QLabel},
 		m_has_image{false},
+		m_slider_index{0},
 		m_slider_values(1)
 {
 	ui->setupUi(this);
