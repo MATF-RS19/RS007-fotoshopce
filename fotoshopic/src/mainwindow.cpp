@@ -153,22 +153,17 @@ void MainWindow::capture_sliders(const qstring_map<QSlider*> sliders)
 void MainWindow::slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value)
 {
 	sliders[key]->setSliderPosition(value);
+	sliders[key]->setTracking(false);
 	m_slider_values.front()[key] = value;
 
-	QObject::connect(sliders[key], &QSlider::sliderMoved, [this, key](auto &&e) {
+	QObject::connect(sliders[key], &QSlider::valueChanged, [this, key](auto &&e) {
 		if(m_has_image) {
-			m_image_list[m_image_index].param_list[m_image_list[m_image_index].index].adjustment_map[key] = e;
-
-			cv::Mat current{m_image_list[m_image_index].get_current()};
-			Image img(current, m_image_list[m_image_index].m_filename);
-
 			ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
 			m_image_list[m_image_index].param_list.push_back(params);
 			m_image_list[m_image_index].index++;
+			m_image_list[m_image_index].param_list[m_image_list[m_image_index].index].adjustment_map[key] = e;
 
-			auto slider_values{m_slider_values.back()};
-			slider_values[key] = e;
-			m_slider_values.push_back(std::move(slider_values));
+			m_slider_values.push_back(m_image_list[m_image_index].param_list[m_image_list[m_image_index].index].adjustment_map);
 			m_slider_index++;
 
 			delete_after_redo();
@@ -197,9 +192,12 @@ void MainWindow::on_action_Open_triggered()
 
     QString fileName{QFileDialog::getOpenFileName(this, "Open file")};
 	try {
+		m_image_list.clear();
+		m_slider_values.clear();
+		m_image_index = m_slider_index = 0;
+
 		Image img{cv::imread(fileName.toStdString()), fileName.toStdString()};
 		m_image_list.push_back(img);
-		m_image_index = 0;
         m_has_image = true;
 		show_image();
 		setWindowTitle(fileName);
@@ -435,7 +433,8 @@ void MainWindow::on_action_Delete_triggered()
 		reply = QMessageBox::question(this, "Warning", "Are you sure you want to delete current image?", QMessageBox::Yes | QMessageBox::No);
 		if (reply == QMessageBox::Yes) {
 			m_image_list.clear();
-			m_image_index = 0;
+			m_slider_values.clear();
+			m_image_index = m_slider_index = 0;
 			m_has_image = false;
 			show_image();
 		}
@@ -576,6 +575,10 @@ void MainWindow::delete_after_redo() {
 	if (m_image_list[m_image_index].index != m_image_list[m_image_index].param_list.size()) {
 		m_image_list[m_image_index].param_list.erase(m_image_list[m_image_index].param_list.begin() + int(m_image_list[m_image_index].index) + 1,
 										   m_image_list[m_image_index].param_list.end());
+	}
+
+	if(m_slider_index != m_slider_values.size()) {
+		m_slider_values.erase(m_slider_values.begin() + int(m_slider_index), m_slider_values.end());
 	}
 }
 
