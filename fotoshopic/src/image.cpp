@@ -82,9 +82,9 @@ cv::Mat Image::get_current()
 
 	// Setting the image contrast value if it changed
 	if(contrast_to - contrast_from < 0) {
-		new_image.convertTo(new_image, -1, 0.9, 0);
+		new_image.convertTo(new_image, -1, 0.99, 0);
 	} else if(contrast_to - contrast_from > 0) {
-		new_image.convertTo(new_image, -1, 1.1, 0);
+		new_image.convertTo(new_image, -1, 1.01, 0);
 	}
 
 	// Setting the image brightness value if it changed
