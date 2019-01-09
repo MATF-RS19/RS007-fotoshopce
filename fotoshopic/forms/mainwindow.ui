@@ -282,7 +282,7 @@
   <action name="action_Rotate_right">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/icons/icons/rotate_right.jpeg</normaloff>:/icons/icons/rotate_right.jpeg</iconset>
+     <normaloff>:/icons/icons/rotate_right.png</normaloff>:/icons/icons/rotate_right.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Rotate right</string>
@@ -291,7 +291,7 @@
   <action name="action_Rotate_left">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/icons/icons/rotate_left.jpeg</normaloff>:/icons/icons/rotate_left.jpeg</iconset>
+     <normaloff>:/icons/icons/rotate_left.png</normaloff>:/icons/icons/rotate_left.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Rotate left</string>
@@ -300,7 +300,7 @@
   <action name="action_Crop">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/icons/icons/crop.jpeg</normaloff>:/icons/icons/crop.jpeg</iconset>
+     <normaloff>:/icons/icons/crop.png</normaloff>:/icons/icons/crop.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Crop</string>
