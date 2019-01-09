@@ -104,6 +104,7 @@
     <addaction name="action_Mirror"/>
     <addaction name="action_Rotate_right"/>
     <addaction name="action_Rotate_left"/>
+    <addaction name="action_Crop"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
@@ -145,6 +146,7 @@
    <addaction name="action_ZoomOut"/>
    <addaction name="action_Rotate_right"/>
    <addaction name="action_Rotate_left"/>
+   <addaction name="action_Crop"/>
    <addaction name="action_Resize"/>
    <addaction name="action_Mirror"/>
    <addaction name="action_Draw"/>
@@ -293,6 +295,15 @@
    </property>
    <property name="text">
     <string>&amp;Rotate left</string>
+   </property>
+  </action>
+  <action name="action_Crop">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/icons/icons/crop.jpeg</normaloff>:/icons/icons/crop.jpeg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Crop</string>
    </property>
   </action>
  </widget>

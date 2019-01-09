@@ -62,7 +62,9 @@ class MainWindow : public QMainWindow
         void on_action_Undo_triggered();
         void on_action_Redo_triggered();
 	// Private member functions
-    private:
+		void on_action_Crop_triggered();
+
+	private:
 		void show_image();
 		void save_image(const std::string& fileName);
 		void capture_sliders(const qstring_map<QSlider*> sliders);

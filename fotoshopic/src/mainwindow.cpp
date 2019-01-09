@@ -343,8 +343,8 @@ void MainWindow::on_action_Mirror_triggered()
 {
 	if (m_has_image) {
 		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
-		std::swap(params.topleft_corner, params.topright_corner);
-		std::swap(params.bottomleft_corner, params.bottomright_corner);
+		std::swap(params.corners[0], params.corners[1]);
+		std::swap(params.corners[2], params.corners[3]);
 		m_image_list[m_image_index].param_list.push_back(params);
 		m_image_list[m_image_index].index++;
 		delete_after_redo();
@@ -361,11 +361,11 @@ void MainWindow::on_action_Rotate_left_triggered()
 {
     if (m_has_image) {
 		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
-		int a{params.topleft_corner}, b{params.topright_corner}, c{params.bottomleft_corner}, d{params.bottomright_corner};
-		params.topleft_corner = b;
-		params.topright_corner = d;
-		params.bottomleft_corner = a;
-		params.bottomright_corner = c;
+		auto a{params.corners[0]}, b{params.corners[1]}, c{params.corners[2]}, d{params.corners[3]};
+		params.corners[0] = b;
+		params.corners[1] = d;
+		params.corners[2] = a;
+		params.corners[3] = c;
 		m_image_list[m_image_index].param_list.push_back(params);
 		m_image_list[m_image_index].index++;
 		delete_after_redo();
@@ -382,11 +382,11 @@ void MainWindow::on_action_Rotate_right_triggered()
 {
     if (m_has_image) {
 		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
-		int a{params.topleft_corner}, b{params.topright_corner}, c{params.bottomleft_corner}, d{params.bottomright_corner};
-		params.topleft_corner = c;
-		params.topright_corner = a;
-		params.bottomleft_corner = d;
-		params.bottomright_corner = b;
+		auto a{params.corners[0]}, b{params.corners[1]}, c{params.corners[2]}, d{params.corners[3]};
+		params.corners[0] = c;
+		params.corners[1] = a;
+		params.corners[2] = d;
+		params.corners[3] = b;
 		m_image_list[m_image_index].param_list.push_back(params);
 		m_image_list[m_image_index].index++;
 		delete_after_redo();
@@ -441,6 +441,43 @@ void MainWindow::on_action_Delete_triggered()
 	} else {
 		QMessageBox::warning(this, "Warning", "Nothing to delete");
 	}
+}
+
+void MainWindow::on_action_Crop_triggered()
+{
+//	if (m_has_image) {
+//		QDialog dialog(this);
+//		QFormLayout form(&dialog);
+//		QLabel screen{""};
+//		form.addRow(&screen);
+
+//		cv::Mat current{m_image_list[m_image_index].get_current()};
+//		if (0 == m_image_list[m_image_index].m_type) {
+//			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
+//			screen.setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_Indexed8)));
+//		} else if (1 == m_image_list[m_image_index].m_type) {
+//			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
+//			screen.setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_RGB888)));
+//		}
+
+//		QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
+//		form.addRow(&buttonBox);
+
+//		QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
+//		QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
+//		// TODO: Check if its int, maybe leaking memory idk
+//		if (dialog.exec() == QDialog::Accepted) {
+//			Image img{current, m_image_list[m_image_index].m_filename};
+//			m_image_list.push_back(img);
+//			m_image_index++;
+//			delete_after_redo();
+//			show_image();
+//		}
+
+//	} else {
+//		QMessageBox::warning(this, "Warning", "Nothing to crop");
+//	}
 }
 
 /*
@@ -571,3 +608,4 @@ void MainWindow::delete_after_redo() {
 		m_slider_values.erase(m_slider_values.begin() + int(m_slider_index), m_slider_values.end());
 	}
 }
+
