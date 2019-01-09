@@ -433,7 +433,8 @@ void MainWindow::on_action_Delete_triggered()
 		reply = QMessageBox::question(this, "Warning", "Are you sure you want to delete current image?", QMessageBox::Yes | QMessageBox::No);
 		if (reply == QMessageBox::Yes) {
 			m_image_list.clear();
-			m_image_index = 0;
+			m_slider_values.clear();
+			m_image_index = m_slider_index = 0;
 			m_has_image = false;
 			show_image();
 		}
