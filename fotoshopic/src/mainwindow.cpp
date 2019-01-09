@@ -30,10 +30,11 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->hlSide->setAlignment(Qt::AlignTop);
 
 	// Create basic photo adjustment sliders
-	auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast"})};
+	auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Saturation"})};
 	capture_sliders(basic_sliders);
 	slider_operation(basic_sliders, "Brightness");
 	slider_operation(basic_sliders, "Contrast");
+	slider_operation(basic_sliders, "Saturation");
 
 	// Create advanced photo adjustment sliders
 	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur"})};
@@ -42,17 +43,13 @@ MainWindow::MainWindow(QWidget *parent)
 	slider_operation(advanced_sliders, "Vignette", 0);
 	slider_operation(advanced_sliders, "Blur", 0);
 
-	// Create color photo adjustment sliders
-    auto color_sliders{create_section("Color settings", {"Saturation", "Luminance", "Temperature"})};
-	capture_sliders(color_sliders);
-	slider_operation(color_sliders, "Saturation");
-	slider_operation(color_sliders, "Luminance");
-	slider_operation(color_sliders, "Temperature");
-
 	// TODO: Add color selection [@dijana-z]
 	// Create individual color photo adjustment sliders
     auto color_individual_sliders{create_section("Individual color settings", {"Hue", "Saturation", "Luminance"}, 3)};
 	capture_sliders(color_individual_sliders.first);
+
+	// Create filter section
+	auto filter_section{create_section("Filters", {}, 4, false)};
 
 	// Setting Widget params
 	m_lb_image->setMinimumSize(600, 600);
@@ -232,7 +229,7 @@ qstring_map<QSlider*> MainWindow::create_section(QString name, const std::vector
 /*
 * @brief Create one drop-down section with individual color selection.
 */
-std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons)
+std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one)
 {
     Section *section{new Section(name, 300, this)};
 	m_sections.push_back(section);
@@ -264,7 +261,7 @@ std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QStri
 		vbox->addWidget(sliders[e]);
     }
 
-	if(buttons) {
+	if(buttons && select_one) {
 		toggle_group->buttons()[0]->setChecked(true);
 	}
 

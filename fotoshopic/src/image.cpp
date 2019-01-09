@@ -1,5 +1,6 @@
 #include "headers/image.h"
 
+
 Image::Image(const cv::Mat& img, const std::string& fileName)
 	: m_img(img), m_filename(fileName), m_type{1}
 {
@@ -115,6 +116,11 @@ cv::Mat Image::get_current()
 			}
 		}
 	}
+
+	cv::Mat im_gray;
+	cv::cvtColor(new_image, im_gray, cv::COLOR_RGB2GRAY);
+	cv::Mat im_color;
+	cv::applyColorMap(im_gray, new_image, cv::COLORMAP_JET);
 
 	return new_image;
 }
