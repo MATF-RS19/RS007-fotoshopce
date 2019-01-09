@@ -32,7 +32,7 @@ namespace fs::ops
 	{}
 
 	/*
-	* @brief Rotate image left.
+	* @brief Rotate image counterclockwise.
 	*/
 	void RotateLeftOperation::apply(Image &img)
 	{
@@ -47,7 +47,7 @@ namespace fs::ops
 	{}
 
 	/*
-	* @brief Rotate image right.
+	* @brief Rotate image clockwise.
 	*/
 	void RotateRightOperation::apply(Image &img)
 	{

@@ -3,9 +3,6 @@
 #include "headers/utils.h"
 #include "headers/section.h"
 
-#include <QButtonGroup>
-#include <QRadioButton>
-
 
 /*
 * @brief Builds instance of MainWindow.
@@ -19,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->setupUi(this);
 
     // Disable spacing
-    // TODO: Pls lice radi nesto
+	// TODO: Adjust sidebar and image label size
     auto *hlMain{new QHBoxLayout};
 	ui->mainContainer->setLayout(hlMain);
 	ui->mainContainer->setMaximumWidth(700);
@@ -31,35 +28,22 @@ MainWindow::MainWindow(QWidget *parent)
 
 	// Create basic photo adjustment sliders
 	auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Shadows", "Highlights"})};
-// TODO: Move to new architecture
-//	slider_operation(basic_sliders, "Brightness", fs::ops::basic_edits::brightness);
-//	slider_operation(basic_sliders, "Contrast", fs::ops::basic_edits::contrast);
-//	slider_operation(basic_sliders, "Shadows", fs::ops::basic_edits::shadows);
-//	slider_operation(basic_sliders, "Highlights", fs::ops::basic_edits::highlights);
-
-//	QObject::connect(basic_sliders[0], &QSlider::sliderMoved, [&](auto &&e) {
-//		if(m_has_image) {
-//			image_list[index].param_list[image_list[index].index].m_brightness = (e - 50.0);
-//			show_image();
-//		} else {
-//			QMessageBox::warning(this, "Warning", "No image to adjust.");
-//		}
-//	});
-
+	slider_operation(basic_sliders, "Brightness");
+	slider_operation(basic_sliders, "Contrast");
+	slider_operation(basic_sliders, "Shadows");
+	slider_operation(basic_sliders, "Highlights");
 
 	// Create advanced photo adjustment sliders
 	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur"})};
-// TODO: Move to new architecture
-//	slider_operation(advanced_sliders, "Sharpen", fs::ops::basic_edits::sharpen, 0);
-//	slider_operation(advanced_sliders, "Vignette", fs::ops::basic_edits::vignette);
-//	slider_operation(advanced_sliders, "Blur", fs::ops::basic_edits::blur, 0);
+	slider_operation(advanced_sliders, "Sharpen", 0);
+	slider_operation(advanced_sliders, "Vignette", 0);
+	slider_operation(advanced_sliders, "Blur", 0);
 
 	// Create color photo adjustment sliders
     auto color_sliders{create_section("Color settings", {"Saturation", "Luminance", "Temperature"})};
-// TODO: Move to new architecture
-//	slider_operation(color_sliders, "Saturation", fs::ops::basic_edits::saturation);
-//	slider_operation(color_sliders, "Luminance", fs::ops::basic_edits::luminance);
-//	slider_operation(color_sliders, "Temperature", fs::ops::basic_edits::temperature);
+	slider_operation(color_sliders, "Saturation");
+	slider_operation(color_sliders, "Luminance");
+	slider_operation(color_sliders, "Temperature");
 
     // TODO: Add color selection
 	// Create individual color photo adjustment sliders
@@ -110,9 +94,9 @@ MainWindow::~MainWindow()
 }
 
 /*
-* @brief Display the image as either a colored or a grayscale image.
+* @brief Display image according to its type (either RGB or grayscale).
 */
-void MainWindow::show_image() const
+void MainWindow::show_image()
 {
 	if (m_has_image) {
 		cv::Mat current{image_list[index].get_current()};
@@ -129,7 +113,7 @@ void MainWindow::show_image() const
 }
 
 /*
-* @brief Save the image as either a colored or a grayscale image.
+* @brief Save image according to its type (either RGB or grayscale).
 */
 void MainWindow::save_image(const std::string& fileName)
 {
@@ -147,40 +131,35 @@ void MainWindow::save_image(const std::string& fileName)
 	}
 }
 
-//void MainWindow::push_operation(fs::ops::AbstractOperation *op)
-//{
-//    op->apply(img);
-//    m_fwd_ops.emplace_back(std::move(op));
-//}
-
-//void MainWindow::pop_operation()
-//{
-//    auto op{std::move(m_fwd_ops.back())};
-//    m_fwd_ops.pop_back();
-//    op->invert(img);
-//    m_bwd_ops.emplace_back(std::move(op));
-//}
-
 /*
-* @brief TODO: description
+* @brief Set initial slider value and define slider movement trigger.
 */
-//void MainWindow::slider_operation(qstring_map<QSlider*> &sliders, const QString &key, fs::ops::basic_edits edit, int value)
-//{
-//	m_adjustment_map[key] = {value, value};
-//	sliders[key]->setSliderPosition(value);
-//
-//	QObject::connect(sliders[key], &QSlider::sliderMoved, [key, this](auto &&e) { m_adjustment_map[key].second = e; });
-//
-//	QObject::connect(sliders[key], &QSlider::sliderReleased, [key, edit, this]() {
-//		if(m_has_image) {
-//			push_operation(new fs::ops::BasicEditOperation(img, m_adjustment_map[key].first, m_adjustment_map[key].second, edit));
-//			m_adjustment_map[key].first = m_adjustment_map[key].second;
-//			show_image();
-//		} else {
-//			QMessageBox::warning(this, "Warning", "No image to adjust.");
-//		}
-//	});
-//}
+void MainWindow::slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value)
+{
+
+	sliders[key]->setSliderPosition(value);
+
+	QObject::connect(sliders[key], &QSlider::sliderMoved, [this, key](auto &&e) {
+		if(m_has_image) {
+			if(index) {
+				image_list[index].param_list[image_list[index].index].m_adjustment_map[key].first = image_list[index-1].param_list[image_list[index-1].index].m_adjustment_map[key].second;
+			} else {
+				image_list[index].param_list[image_list[index].index].m_adjustment_map[key].first = image_list[index].param_list[image_list[index].index].m_adjustment_map[key].second;
+			}
+
+			image_list[index].param_list[image_list[index].index].m_adjustment_map[key].second = e;
+
+			cv::Mat current{image_list[index].get_current()};
+			Image img{current, image_list[index].m_filename};
+			image_list.push_back(img);
+			index++;
+			delete_after_redo();
+			show_image();
+		} else {
+			QMessageBox::warning(this, "Warning", "No image to adjust.");
+		}
+	});
+}
 
 /*
 * @brief Slot for Open signal.
@@ -212,7 +191,7 @@ void MainWindow::on_action_Open_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Create one drop-down slider section.
 */
 qstring_map<QSlider*> MainWindow::create_section(QString name, const std::vector<QString> &contents)
 {
@@ -235,7 +214,7 @@ qstring_map<QSlider*> MainWindow::create_section(QString name, const std::vector
 }
 
 /*
-* @brief TODO: description
+* @brief Create one drop-down section with individual color selection.
 */
 std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons)
 {
@@ -278,7 +257,7 @@ std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QStri
 }
 
 /*
-* @brief SLot for Save signal.
+* @brief Slot for Save signal.
 */
 void MainWindow::on_action_Save_triggered()
 {
@@ -290,7 +269,7 @@ void MainWindow::on_action_Save_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Save and name current image.
 */
 void MainWindow::on_action_SaveAs_triggered()
 {
@@ -303,7 +282,7 @@ void MainWindow::on_action_SaveAs_triggered()
 }
 
 // TODO: Fix zooming, implement dragging while zoomed [@milanilic332]
-// TODO: Check if image is to large or small
+// TODO: Check if image is too large or small
 /*
 * @brief TODO: description
 */
@@ -342,7 +321,7 @@ void MainWindow::on_action_ZoomOut_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Convert image to its mirror reflection.
 */
 void MainWindow::on_action_Mirror_triggered()
 {
@@ -360,7 +339,7 @@ void MainWindow::on_action_Mirror_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Rotate image counterclockwise.
 */
 void MainWindow::on_action_Rotate_left_triggered()
 {
@@ -381,7 +360,7 @@ void MainWindow::on_action_Rotate_left_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Rotate image clockwise.
 */
 void MainWindow::on_action_Rotate_right_triggered()
 {
@@ -403,7 +382,7 @@ void MainWindow::on_action_Rotate_right_triggered()
 
 
 /*
-* @brief TODO: description
+* @brief Convert image to RGB.
 */
 void MainWindow::on_btRGB_triggered()
 {
@@ -416,7 +395,7 @@ void MainWindow::on_btRGB_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Convert image to grayscale.
 */
 void MainWindow::on_btGray_triggered()
 {
@@ -429,7 +408,7 @@ void MainWindow::on_btGray_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Delete current image.
 */
 void MainWindow::on_action_Delete_triggered()
 {
@@ -449,7 +428,7 @@ void MainWindow::on_action_Delete_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Resize the image to the given width and height.
 */
 void MainWindow::on_action_Resize_triggered()
 {
@@ -494,7 +473,7 @@ void MainWindow::on_action_Resize_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Exit the application.
 */
 void MainWindow::on_action_Exit_triggered()
 {
@@ -506,7 +485,7 @@ void MainWindow::on_action_Exit_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Undo the previous image adjustment.
 */
 void MainWindow::on_action_Undo_triggered()
 {
@@ -526,7 +505,7 @@ void MainWindow::on_action_Undo_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Redo the previous image adjustment.
 */
 void MainWindow::on_action_Redo_triggered()
 {
@@ -546,7 +525,7 @@ void MainWindow::on_action_Redo_triggered()
 }
 
 /*
-* @brief TODO: description
+* @brief Delete the adjusted image after redoing adjustments.
 */
 void MainWindow::delete_after_redo() {
 	if (image_list.begin() + int(index) != image_list.end()) {

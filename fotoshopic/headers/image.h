@@ -10,7 +10,7 @@
 #include "opencv2/highgui.hpp"
 
 #include "headers/image_params.h"
-
+#include "headers/utils.h"
 
 /*
 * @brief TODO: docstring [@milanilic332]
@@ -30,6 +30,6 @@ class Image
 		int m_type;
 
 		std::vector<image_params> param_list;
-		unsigned long index;
-		cv::Mat get_current() const;
+		unsigned long index{0};
+		cv::Mat get_current();
 };

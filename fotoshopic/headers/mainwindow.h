@@ -18,17 +18,21 @@
 #include <QLineEdit>
 #include <QList>
 #include <QDialogButtonBox>
+#include <QButtonGroup>
+#include <QRadioButton>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 
 #include "image.h"
+#include "image_params.h"
 #include "section.h"
 #include "utils.h"
+//#include "edit_operations.h"
 
-template <typename T>
-using qstring_map = std::unordered_map<QString, T>;
+//template <typename T>
+//using qstring_map = std::unordered_map<QString, T>;
 
 namespace Ui { class MainWindow; }
 
@@ -59,10 +63,10 @@ class MainWindow : public QMainWindow
         void on_action_Redo_triggered();
 	// Private member functions
     private:
-		void show_image() const;
+		void show_image();
 		void save_image(const std::string& fileName);
 //      void push_operation(fs::ops::AbstractOperation *op);
-//		void slider_operation(qstring_map<QSlider*> &sliders, const QString &key, fs::ops::basic_edits edit, int value = 50);
+		void slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value = 50);
         void pop_operation();
 		qstring_map<QSlider*> create_section(QString name, const std::vector<QString> &contents);
 		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons);
@@ -75,7 +79,6 @@ class MainWindow : public QMainWindow
 		Image img;
 //		std::vector<std::unique_ptr<fs::ops::AbstractOperation>> m_fwd_ops, m_bwd_ops;
 		bool m_has_image;
-		qstring_map<std::pair<int, int>> m_adjustment_map;
 		std::vector<Section*> m_sections;
 		std::vector<Image> image_list;
 		unsigned long index;

@@ -1,5 +1,4 @@
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #include <functional>
 
@@ -13,4 +12,5 @@ namespace std {
   };
 }
 
-#endif // UTILS_H
+template <typename T>
+using qstring_map = std::unordered_map<QString, T>;
