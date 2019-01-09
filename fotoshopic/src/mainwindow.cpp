@@ -445,6 +445,43 @@ void MainWindow::on_action_Delete_triggered()
 	}
 }
 
+void MainWindow::on_action_Crop_triggered()
+{
+//	if (m_has_image) {
+//		QDialog dialog(this);
+//		QFormLayout form(&dialog);
+//		QLabel screen{""};
+//		form.addRow(&screen);
+
+//		cv::Mat current{m_image_list[m_image_index].get_current()};
+//		if (0 == m_image_list[m_image_index].m_type) {
+//			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
+//			screen.setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_Indexed8)));
+//		} else if (1 == m_image_list[m_image_index].m_type) {
+//			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
+//			screen.setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_RGB888)));
+//		}
+
+//		QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
+//		form.addRow(&buttonBox);
+
+//		QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
+//		QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
+//		// TODO: Check if its int, maybe leaking memory idk
+//		if (dialog.exec() == QDialog::Accepted) {
+//			Image img{current, m_image_list[m_image_index].m_filename};
+//			m_image_list.push_back(img);
+//			m_image_index++;
+//			delete_after_redo();
+//			show_image();
+//		}
+
+//	} else {
+//		QMessageBox::warning(this, "Warning", "Nothing to crop");
+//	}
+}
+
 /*
 * @brief Resize the image to the given width and height.
 */
@@ -569,3 +606,4 @@ void MainWindow::delete_after_redo() {
 										   m_image_list[m_image_index].param_list.end());
 	}
 }
+

@@ -27,7 +27,6 @@ struct ImageParams
 	ImageParams();
 
 	std::array<image_corners, 4> corners;
-
 	qstring_map<int> adjustment_map;
 };
 
