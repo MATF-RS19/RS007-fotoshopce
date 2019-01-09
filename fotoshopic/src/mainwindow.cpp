@@ -345,8 +345,8 @@ void MainWindow::on_action_Mirror_triggered()
 {
 	if (m_has_image) {
 		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
-		std::swap(params.topleft_corner, params.topright_corner);
-		std::swap(params.bottomleft_corner, params.bottomright_corner);
+		std::swap(params.corners[0], params.corners[1]);
+		std::swap(params.corners[2], params.corners[3]);
 		m_image_list[m_image_index].param_list.push_back(params);
 		m_image_list[m_image_index].index++;
 		delete_after_redo();
@@ -363,11 +363,11 @@ void MainWindow::on_action_Rotate_left_triggered()
 {
     if (m_has_image) {
 		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
-		int a{params.topleft_corner}, b{params.topright_corner}, c{params.bottomleft_corner}, d{params.bottomright_corner};
-		params.topleft_corner = b;
-		params.topright_corner = d;
-		params.bottomleft_corner = a;
-		params.bottomright_corner = c;
+		auto a{params.corners[0]}, b{params.corners[1]}, c{params.corners[2]}, d{params.corners[3]};
+		params.corners[0] = b;
+		params.corners[1] = d;
+		params.corners[2] = a;
+		params.corners[3] = c;
 		m_image_list[m_image_index].param_list.push_back(params);
 		m_image_list[m_image_index].index++;
 		delete_after_redo();
@@ -384,11 +384,11 @@ void MainWindow::on_action_Rotate_right_triggered()
 {
     if (m_has_image) {
 		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
-		int a{params.topleft_corner}, b{params.topright_corner}, c{params.bottomleft_corner}, d{params.bottomright_corner};
-		params.topleft_corner = c;
-		params.topright_corner = a;
-		params.bottomleft_corner = d;
-		params.bottomright_corner = b;
+		auto a{params.corners[0]}, b{params.corners[1]}, c{params.corners[2]}, d{params.corners[3]};
+		params.corners[0] = c;
+		params.corners[1] = a;
+		params.corners[2] = d;
+		params.corners[3] = b;
 		m_image_list[m_image_index].param_list.push_back(params);
 		m_image_list[m_image_index].index++;
 		delete_after_redo();
