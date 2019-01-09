@@ -1,8 +1,8 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>icons/crop.jpeg</file>
-        <file>icons/rotate_left.jpeg</file>
-        <file>icons/rotate_right.jpeg</file>
+        <file>icons/crop.png</file>
+        <file>icons/rotate_left.png</file>
+        <file>icons/rotate_right.png</file>
         <file>icons/delete.png</file>
         <file>icons/draw.png</file>
         <file>icons/exit.png</file>
