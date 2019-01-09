@@ -73,28 +73,14 @@ cv::Mat Image::get_current()
 	int sharpen{param_list[index].adjustment_map[QString::fromStdString("Sharpen")]};
 	int vignette{param_list[index].adjustment_map[QString::fromStdString("Vignette")]};
 
-	// Set initial brightness value
-	double brightness_value{0};
-
-	// Calculate the new brightness value if it changed
-	if(brightness < 50) {
-		brightness_value = (50 - brightness) * (-63 / 50);
-	} else if(brightness > 50) {
-		brightness_value = (brightness - 50) * (63 / 50);
-	}
+	// Set the brightness value
+	double brightness_value{brightness - 50.0};
 
 	// Setting the image brightness
 	cv::add(new_image, cv::Scalar(brightness_value, brightness_value, brightness_value), new_image);
 
-	// Set initial contrast value
-	double contrast_value{1};
-
-	// Calculate the new contrast value if it changed
-	if(contrast < 50) {
-		contrast_value = contrast * (0.9 / 50);
-	} else if(contrast > 50) {
-		contrast_value = contrast * (1.2 / 50);
-	}
+	// Set the contrast value
+	double contrast_value{contrast / 50.0};
 
 	// Setting the image contrast
 	cv::multiply(new_image, cv::Scalar(contrast_value, contrast_value, contrast_value), new_image);
