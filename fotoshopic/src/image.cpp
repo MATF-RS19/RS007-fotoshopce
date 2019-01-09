@@ -22,48 +22,48 @@ cv::Mat Image::get_current()
 	cv::Mat new_image;
 	m_img.copyTo(new_image);
 
-	int tl{param_list[index].topleft_corner};
-	int tr{param_list[index].topright_corner};
-	int bl{param_list[index].bottomleft_corner};
-	int br{param_list[index].bottomright_corner};
+	auto tl{param_list[index].corners[0]};
+	auto tr{param_list[index].corners[1]};
+	auto bl{param_list[index].corners[2]};
+	auto br{param_list[index].corners[3]};
 
 	// TODO: Move ifs to function [@milanilic332]
-	if (tl == 1 && tr == 3 &&
-		bl == 0 && br == 2) {
+	if (tl == image_corners::top_right && tr == image_corners::bottom_right &&
+		bl == image_corners::top_left && br == image_corners::bottom_left) {
 			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
 	}
 
-	if (tl == 3 && tr == 2 &&
-		bl == 1 && br == 0) {
+	if (tl == image_corners::bottom_right && tr == image_corners::bottom_left &&
+		bl == image_corners::top_right && br == image_corners::top_left) {
 			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
 			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
 	}
 
-	if (tl == 2 && tr == 0 &&
-		bl == 3 && br == 1) {
+	if (tl == image_corners::bottom_left && tr == image_corners::top_left &&
+		bl == image_corners::bottom_right && br == image_corners::top_right) {
 			cv::rotate(new_image, new_image, cv::ROTATE_90_CLOCKWISE);
 	}
 
-	if (tl == 3 && tr == 1 &&
-		bl == 2 && br == 0) {
+	if (tl == image_corners::bottom_right && tr == image_corners::top_right &&
+		bl == image_corners::bottom_left && br == image_corners::top_left) {
 			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
 			cv::flip(new_image, new_image, 1);
 	}
 
-	if (tl == 2 && tr == 3 &&
-		bl == 0 && br == 1) {
+	if (tl == image_corners::bottom_left && tr == image_corners::bottom_right &&
+		bl == image_corners::top_left && br == image_corners::top_right) {
 			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
 			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
 			cv::flip(new_image, new_image, 1);
 	}
-	if (tl == 0 && tr == 2 &&
-		bl == 1 && br == 3) {
+	if (tl == image_corners::top_left && tr == image_corners::bottom_left &&
+		bl == image_corners::top_right && br == image_corners::bottom_right) {
 			cv::rotate(new_image, new_image, cv::ROTATE_90_CLOCKWISE);
 			cv::flip(new_image, new_image, 1);
 	}
 
-	if (tl == 1 && tr == 0 &&
-		bl == 3 && br == 2) {
+	if (tl == image_corners::top_right && tr == image_corners::top_left &&
+		bl == image_corners::bottom_right && br == image_corners::bottom_left) {
 			cv::flip(new_image, new_image, 1);
 	}
 
