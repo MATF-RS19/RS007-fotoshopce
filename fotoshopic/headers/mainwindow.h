@@ -65,22 +65,22 @@ class MainWindow : public QMainWindow
     private:
 		void show_image();
 		void save_image(const std::string& fileName);
-//      void push_operation(fs::ops::AbstractOperation *op);
+		void capture_sliders(const qstring_map<QSlider*> sliders);
 		void slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value = 50);
-        void pop_operation();
 		qstring_map<QSlider*> create_section(QString name, const std::vector<QString> &contents);
 		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons);
 		void delete_after_redo();
 	// Private variables
 	private:
 		// Define the image
-		QLabel* m_lb_image;
 		Ui::MainWindow *ui;
-		Image img;
-//		std::vector<std::unique_ptr<fs::ops::AbstractOperation>> m_fwd_ops, m_bwd_ops;
+		QLabel* m_lb_image;
+		Image m_img;
 		bool m_has_image;
 		std::vector<Section*> m_sections;
-		std::vector<Image> image_list;
-		unsigned long index;
+		std::vector<Image> m_image_list;
+		qstring_map<QSlider*> m_sliders;
+		unsigned long m_image_index, m_slider_index;
+		std::vector<qstring_map<int>> m_slider_values;
 };
 

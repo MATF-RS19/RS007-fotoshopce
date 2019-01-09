@@ -11,43 +11,47 @@
 */
 MainWindow::MainWindow(QWidget *parent)
 	:	QMainWindow(parent),
-		m_lb_image{new QLabel},
 		ui{new Ui::MainWindow},
-		m_has_image{false}
+		m_lb_image{new QLabel},
+		m_has_image{false},
+		m_slider_values(1)
 {
 	ui->setupUi(this);
 
     // Disable spacing
-	// TODO: Adjust sidebar and image label size
+	// TODO: Adjust sidebar and image label size [@milanilic332]
     auto *hlMain{new QHBoxLayout};
 	ui->mainContainer->setLayout(hlMain);
 	ui->mainContainer->setMaximumWidth(700);
     hlMain->setStretchFactor(hlMain, 30);
 
 	// Set side pannel alignment
-    // TODO: Add slots and signals for sliders
 	ui->hlSide->setAlignment(Qt::AlignTop);
 
 	// Create basic photo adjustment sliders
 	auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast"})};
+	capture_sliders(basic_sliders);
 	slider_operation(basic_sliders, "Brightness");
 	slider_operation(basic_sliders, "Contrast");
 
 	// Create advanced photo adjustment sliders
 	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur"})};
+	capture_sliders(advanced_sliders);
 	slider_operation(advanced_sliders, "Sharpen", 0);
 	slider_operation(advanced_sliders, "Vignette", 0);
 	slider_operation(advanced_sliders, "Blur", 0);
 
 	// Create color photo adjustment sliders
     auto color_sliders{create_section("Color settings", {"Saturation", "Luminance", "Temperature"})};
+	capture_sliders(color_sliders);
 	slider_operation(color_sliders, "Saturation");
 	slider_operation(color_sliders, "Luminance");
 	slider_operation(color_sliders, "Temperature");
 
-    // TODO: Add color selection
+	// TODO: Add color selection [@dijana-z]
 	// Create individual color photo adjustment sliders
     auto color_individual_sliders{create_section("Individual color settings", {"Hue", "Saturation", "Luminance"}, 3)};
+	capture_sliders(color_individual_sliders.first);
 
 	// Setting Widget params
 	m_lb_image->setMinimumSize(600, 600);
@@ -99,11 +103,11 @@ MainWindow::~MainWindow()
 void MainWindow::show_image()
 {
 	if (m_has_image) {
-		cv::Mat current{image_list[index].get_current()};
-		if (0 == image_list[index].m_type) {
+		cv::Mat current{m_image_list[m_image_index].get_current()};
+		if (0 == m_image_list[m_image_index].m_type) {
 			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
 			m_lb_image->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_Indexed8)));
-		} else if (1 == image_list[index].m_type) {
+		} else if (1 == m_image_list[m_image_index].m_type) {
 			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
 			m_lb_image->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_RGB888)));
 		}
@@ -118,10 +122,10 @@ void MainWindow::show_image()
 void MainWindow::save_image(const std::string& fileName)
 {
 	try {
-		cv::Mat current{image_list[index].get_current()};
-		if (0 == img.m_type) {
+		cv::Mat current{m_image_list[m_image_index].get_current()};
+		if (0 == m_img.m_type) {
 			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
-		} else if (1 == img.m_type) {
+		} else if (1 == m_img.m_type) {
 			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
 		}
 
@@ -132,23 +136,39 @@ void MainWindow::save_image(const std::string& fileName)
 }
 
 /*
+* @brief Save passed sliders into map.
+*/
+void MainWindow::capture_sliders(const qstring_map<QSlider*> sliders)
+{
+	for(auto &&slider_pair : sliders) {
+		m_sliders.emplace(slider_pair);
+	}
+}
+
+
+/*
 * @brief Set initial slider value and define slider movement trigger.
 */
 void MainWindow::slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value)
 {
-
 	sliders[key]->setSliderPosition(value);
+	m_slider_values.front()[key] = value;
 
 	QObject::connect(sliders[key], &QSlider::sliderMoved, [this, key](auto &&e) {
 		if(m_has_image) {
-			image_list[index].param_list[image_list[index].index].adjustment_map[key] = e;
+			m_image_list[m_image_index].param_list[m_image_list[m_image_index].index].adjustment_map[key] = e;
 
-			cv::Mat current{image_list[index].get_current()};
-			Image img(current, image_list[index].m_filename);
+			cv::Mat current{m_image_list[m_image_index].get_current()};
+			Image img(current, m_image_list[m_image_index].m_filename);
 
-			ImageParams params{image_list[index].param_list[image_list[index].index]};
-			image_list[index].param_list.push_back(params);
-			image_list[index].index++;
+			ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
+			m_image_list[m_image_index].param_list.push_back(params);
+			m_image_list[m_image_index].index++;
+
+			auto slider_values{m_slider_values.back()};
+			slider_values[key] = e;
+			m_slider_values.push_back(std::move(slider_values));
+			m_slider_index++;
 
 			delete_after_redo();
 			show_image();
@@ -172,13 +192,13 @@ void MainWindow::on_action_Open_triggered()
         }
     }
 
-	image_list.clear();
+	m_image_list.clear();
 
     QString fileName{QFileDialog::getOpenFileName(this, "Open file")};
 	try {
 		Image img{cv::imread(fileName.toStdString()), fileName.toStdString()};
-		image_list.push_back(img);
-		index = 0;
+		m_image_list.push_back(img);
+		m_image_index = 0;
         m_has_image = true;
 		show_image();
 		setWindowTitle(fileName);
@@ -259,7 +279,7 @@ std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QStri
 void MainWindow::on_action_Save_triggered()
 {
 	if (m_has_image) {
-		save_image(image_list[index].m_filename);
+		save_image(m_image_list[m_image_index].m_filename);
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -286,11 +306,11 @@ void MainWindow::on_action_SaveAs_triggered()
 void MainWindow::on_action_ZoomIn_triggered()
 {
 	if (m_has_image) {
-		cv::Mat current{image_list[index].get_current()};
+		cv::Mat current{m_image_list[m_image_index].get_current()};
 		cv::resize(current, current, cv::Size(), 1.1, 1.1);
-		Image img{current, image_list[index].m_filename};
-		image_list.push_back(img);
-		index++;
+		Image img{current, m_image_list[m_image_index].m_filename};
+		m_image_list.push_back(img);
+		m_image_index++;
 		delete_after_redo();
 		show_image();
 	} else {
@@ -305,11 +325,11 @@ void MainWindow::on_action_ZoomIn_triggered()
 void MainWindow::on_action_ZoomOut_triggered()
 {
 	if (m_has_image) {
-		cv::Mat current{image_list[index].get_current()};
+		cv::Mat current{m_image_list[m_image_index].get_current()};
 		cv::resize(current, current, cv::Size(), 0.9, 0.9);
-		Image img{current, image_list[index].m_filename};
-		image_list.push_back(img);
-		index++;
+		Image img{current, m_image_list[m_image_index].m_filename};
+		m_image_list.push_back(img);
+		m_image_index++;
 		delete_after_redo();
 		show_image();
 	} else {
@@ -323,11 +343,11 @@ void MainWindow::on_action_ZoomOut_triggered()
 void MainWindow::on_action_Mirror_triggered()
 {
 	if (m_has_image) {
-		ImageParams params{image_list[index].param_list[image_list[index].index]};
+		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
 		std::swap(params.topleft_corner, params.topright_corner);
 		std::swap(params.bottomleft_corner, params.bottomright_corner);
-		image_list[index].param_list.push_back(params);
-		image_list[index].index++;
+		m_image_list[m_image_index].param_list.push_back(params);
+		m_image_list[m_image_index].index++;
 		delete_after_redo();
 		show_image();
 	} else {
@@ -341,14 +361,14 @@ void MainWindow::on_action_Mirror_triggered()
 void MainWindow::on_action_Rotate_left_triggered()
 {
     if (m_has_image) {
-		ImageParams params{image_list[index].param_list[image_list[index].index]};
+		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
 		int a{params.topleft_corner}, b{params.topright_corner}, c{params.bottomleft_corner}, d{params.bottomright_corner};
 		params.topleft_corner = b;
 		params.topright_corner = d;
 		params.bottomleft_corner = a;
 		params.bottomright_corner = c;
-		image_list[index].param_list.push_back(params);
-		image_list[index].index++;
+		m_image_list[m_image_index].param_list.push_back(params);
+		m_image_list[m_image_index].index++;
 		delete_after_redo();
 		show_image();
     } else {
@@ -362,14 +382,14 @@ void MainWindow::on_action_Rotate_left_triggered()
 void MainWindow::on_action_Rotate_right_triggered()
 {
     if (m_has_image) {
-		ImageParams params{image_list[index].param_list[image_list[index].index]};
+		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
 		int a{params.topleft_corner}, b{params.topright_corner}, c{params.bottomleft_corner}, d{params.bottomright_corner};
 		params.topleft_corner = c;
 		params.topright_corner = a;
 		params.bottomleft_corner = d;
 		params.bottomright_corner = b;
-		image_list[index].param_list.push_back(params);
-		image_list[index].index++;
+		m_image_list[m_image_index].param_list.push_back(params);
+		m_image_list[m_image_index].index++;
 		delete_after_redo();
 		show_image();
     } else {
@@ -384,7 +404,7 @@ void MainWindow::on_action_Rotate_right_triggered()
 void MainWindow::on_btRGB_triggered()
 {
 	if (m_has_image) {
-		image_list[index].m_type = 1;
+		m_image_list[m_image_index].m_type = 1;
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -397,7 +417,7 @@ void MainWindow::on_btRGB_triggered()
 void MainWindow::on_btGray_triggered()
 {
 	if (m_has_image) {
-		image_list[index].m_type = 0;
+		m_image_list[m_image_index].m_type = 0;
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -413,8 +433,8 @@ void MainWindow::on_action_Delete_triggered()
 		QMessageBox::StandardButton reply;
 		reply = QMessageBox::question(this, "Warning", "Are you sure you want to delete current image?", QMessageBox::Yes | QMessageBox::No);
 		if (reply == QMessageBox::Yes) {
-			image_list.clear();
-			index = 0;
+			m_image_list.clear();
+			m_image_index = 0;
 			m_has_image = false;
 			show_image();
 		}
@@ -455,11 +475,11 @@ void MainWindow::on_action_Resize_triggered()
 
 		// TODO: Check if its int, maybe leaking memory idk
 		if (dialog.exec() == QDialog::Accepted) {
-			cv::Mat current{image_list[index].get_current()};
+			cv::Mat current{m_image_list[m_image_index].get_current()};
 			cv::resize(current, current, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
-			Image img{current, image_list[index].m_filename};
-			image_list.push_back(img);
-			index++;
+			Image img{current, m_image_list[m_image_index].m_filename};
+			m_image_list.push_back(img);
+			m_image_index++;
 			delete_after_redo();
 			show_image();
 		}
@@ -487,12 +507,17 @@ void MainWindow::on_action_Exit_triggered()
 void MainWindow::on_action_Undo_triggered()
 {
 	if (m_has_image) {
-		if (0 == image_list[index].index && 0 == index) {
+		if (0 == m_image_list[m_image_index].index && 0 == m_image_index) {
 			QMessageBox::warning(this, "Warning", "Nothing to undo");
-		} else if (0 == image_list[index].index) {
-			index--;
+		} else if (0 == m_image_list[m_image_index].index) {
+			m_image_index--;
 		} else {
-			image_list[index].index--;
+			m_image_list[m_image_index].index--;
+		}
+
+		m_slider_index--;
+		for(auto &&slider_pair : m_slider_values[m_slider_index]) {
+			m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
 		}
 
 		show_image();
@@ -507,12 +532,17 @@ void MainWindow::on_action_Undo_triggered()
 void MainWindow::on_action_Redo_triggered()
 {
 	if (m_has_image) {
-		if (image_list[index].index + 1 == image_list[index].param_list.size() && index + 1 == image_list.size()) {
+		if (m_image_list[m_image_index].index + 1 == m_image_list[m_image_index].param_list.size() && m_image_index + 1 == m_image_list.size()) {
 			QMessageBox::warning(this, "Warning", "Nothing to redo");
-		} else if (image_list[index].index + 1 == image_list[index].param_list.size()) {
-			index++;
+		} else if (m_image_list[m_image_index].index + 1 == m_image_list[m_image_index].param_list.size()) {
+			m_image_index++;
 		} else {
-			image_list[index].index++;
+			m_image_list[m_image_index].index++;
+		}
+
+		m_slider_index++;
+		for(auto &&slider_pair : m_slider_values[m_slider_index]) {
+			m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
 		}
 
 		show_image();
@@ -525,12 +555,12 @@ void MainWindow::on_action_Redo_triggered()
 * @brief Delete the adjusted image after redoing adjustments.
 */
 void MainWindow::delete_after_redo() {
-	if (index != image_list.size()) {
-		image_list.erase(image_list.begin() + int(index) + 1, image_list.end());
+	if (m_image_index != m_image_list.size()) {
+		m_image_list.erase(m_image_list.begin() + int(m_image_index) + 1, m_image_list.end());
 	}
 
-	if (image_list[index].index != image_list[index].param_list.size()) {
-		image_list[index].param_list.erase(image_list[index].param_list.begin() + int(image_list[index].index) + 1,
-										   image_list[index].param_list.end());
+	if (m_image_list[m_image_index].index != m_image_list[m_image_index].param_list.size()) {
+		m_image_list[m_image_index].param_list.erase(m_image_list[m_image_index].param_list.begin() + int(m_image_list[m_image_index].index) + 1,
+										   m_image_list[m_image_index].param_list.end());
 	}
 }
