@@ -14,10 +14,29 @@ Image::Image(const cv::Mat& img, std::string filename)
 {}
 
 /*
+* @brief Copies instance of Image.
+*/
+Image::Image(const Image &img)
+	:	m_filename(img.m_filename),
+		m_type{img.m_type},
+		m_param_list(img.m_param_list),
+		m_index{img.m_index}
+{
+	img.m_img.copyTo(m_img);
+}
+
+/*
 * @brief Destroys instance of Image
 * TODO: Check if this is necessary [@milanilic332]
 */
 Image::~Image() { m_img.release(); }
+
+// TODO: Implement parameter setting [@stefanpantic]
+Image Image::set_parameters(Image img, const ImageParams &params)
+{
+	return Image();
+}
+
 
 // TODO: Refactor function [@stefanpantic]
 cv::Mat Image::get_current()

@@ -38,7 +38,10 @@ class Image
 	// Public member functions
 	public:
 		explicit Image(const cv::Mat& img = cv::Mat(), std::string filename = "");
+		Image(const Image &img);
 		~Image();
+
+		static Image set_parameters(Image img, const ImageParams &params);
 
 	// Private member functions
 	private:

@@ -3,7 +3,6 @@
 
 #include <array>
 #include <unordered_map>
-#include <QString>
 
 #include "utils.h"
 
