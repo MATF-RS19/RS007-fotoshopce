@@ -70,7 +70,7 @@ class MainWindow : public QMainWindow
 		void capture_sliders(const qstring_map<QSlider*> sliders);
 		void slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value = 50);
 		qstring_map<QSlider*> create_section(QString name, const std::vector<QString> &contents);
-		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one = false);
+		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one = true);
 		void delete_after_redo();
 	// Private variables
 	private:

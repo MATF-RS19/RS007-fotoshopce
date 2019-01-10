@@ -1,32 +1,31 @@
+#include "headers/image_params.h"
 #include "headers/image.h"
 
 
-Image::Image(const cv::Mat& img, const std::string& fileName)
-	: m_img(img), m_filename(fileName), m_type{1}
-{
-	ImageParams tmp;
-	param_list.push_back(tmp);
-	index = 0;
-}
-
-Image::Image()
-	: m_img(cv::Mat()), m_filename(std::string())
+/*
+* @brief Builds instance of Image.
+*/
+Image::Image(const cv::Mat& img, std::string filename)
+	:	m_img(img),
+		m_filename(std::move(filename)),
+		m_type{image_type::color},
+		m_param_list(1),
+		m_index{0}
 {}
 
-Image::~Image()
-{
-	m_img.release();
-}
+/*
+* @brief Destroys instance of Image
+* TODO: Check if this is necessary [@milanilic332]
+*/
+Image::~Image() { m_img.release(); }
 
+// TODO: Refactor function [@stefanpantic]
 cv::Mat Image::get_current()
 {
 	cv::Mat new_image;
 	m_img.copyTo(new_image);
 
-	auto tl{param_list[index].corners[0]};
-	auto tr{param_list[index].corners[1]};
-	auto bl{param_list[index].corners[2]};
-	auto br{param_list[index].corners[3]};
+	auto tl{m_param_list[m_index].corners[0]}, tr{m_param_list[m_index].corners[1]}, bl{m_param_list[m_index].corners[2]}, br{m_param_list[m_index].corners[3]};
 
 	// TODO: Move ifs to function [@milanilic332]
 	if (tl == image_corners::top_right && tr == image_corners::bottom_right &&
@@ -68,11 +67,11 @@ cv::Mat Image::get_current()
 			cv::flip(new_image, new_image, 1);
 	}
 
-	int brightness{param_list[index].adjustment_map[QString::fromStdString("Brightness")]};
-	int contrast{param_list[index].adjustment_map[QString::fromStdString("Contrast")]};
-	int blur{param_list[index].adjustment_map[QString::fromStdString("Blur")]};
-	int sharpen{param_list[index].adjustment_map[QString::fromStdString("Sharpen")]};
-	int vignette{param_list[index].adjustment_map[QString::fromStdString("Vignette")]};
+	int brightness{m_param_list[m_index].adjustment_map[QString::fromStdString("Brightness")]};
+	int contrast{m_param_list[m_index].adjustment_map[QString::fromStdString("Contrast")]};
+	int blur{m_param_list[m_index].adjustment_map[QString::fromStdString("Blur")]};
+	int sharpen{m_param_list[m_index].adjustment_map[QString::fromStdString("Sharpen")]};
+	int vignette{m_param_list[m_index].adjustment_map[QString::fromStdString("Vignette")]};
 
 	// Set the brightness value
 	double brightness_value{brightness - 50.0};
@@ -121,10 +120,49 @@ cv::Mat Image::get_current()
 		new_image.convertTo(new_image, CV_8UC3);
 	}
 
-	cv::Mat im_gray;
-	cv::cvtColor(new_image, im_gray, cv::COLOR_RGB2GRAY);
-	cv::Mat im_color;
-	cv::applyColorMap(im_gray, new_image, cv::COLORMAP_JET);
+	// Apply filter
+	switch (m_param_list[m_index].filter)
+	{
+		case filters::none:
+			break;
+		case filters::autumn:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_AUTUMN);
+			break;
+		case filters::bone:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_BONE);
+			break;
+		case filters::jet:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_JET);
+			break;
+		case filters::winter:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_WINTER);
+			break;
+		case filters::rainbow:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_RAINBOW);
+			break;
+		case filters::ocean:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_OCEAN);
+			break;
+		case filters::summer:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_SUMMER);
+			break;
+		case filters::spring:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_SPRING);
+			break;
+		case filters::cool:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_COOL);
+			break;
+		case filters::hsv:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_HSV);
+			break;
+		case filters::pink:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_PINK);
+			break;
+		case filters::hot:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_HOT);
+			break;
+	}
+
 
 	return new_image;
 }
