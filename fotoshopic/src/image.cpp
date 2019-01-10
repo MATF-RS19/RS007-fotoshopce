@@ -100,21 +100,25 @@ cv::Mat Image::get_current()
 		cv::addWeighted(new_image, 1.5, gaussian, -0.5, 0, new_image);
 	}
 
-	// Adjusting vignette effect to the image if needed
+	// Adjusting vignette effect to the image if needed (HACK)
 	if(vignette) {
-		double cols{static_cast<double>(new_image.cols / 2)}, rows{static_cast<double>(new_image.rows / 2)};
-		double max_dis{(1.7 - (1.3 / 99 * (vignette - 99) + 1.5)) * std::sqrt(cols * cols + rows * rows)}, temp;
+		QFile file(":/images/images/gaussian_filter.png");
+		cv::Mat gaussian_filter;
 
-		for (int i = 0; i < new_image.rows; ++i) {
-			for (int j = 0; j < new_image.cols; ++j) {
-				double dist{std::sqrt(std::pow((cols - j), 2) + std::pow((rows - i), 2))};
-				temp = std::cos(dist / max_dis);
-				temp *= temp;
-				new_image.at<cv::Vec3b>(i, j)[0] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[0]) * temp);
-				new_image.at<cv::Vec3b>(i, j)[1] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[1]) * temp);
-				new_image.at<cv::Vec3b>(i, j)[2] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[2]) * temp);
-			}
+		if(file.open(QIODevice::ReadOnly)){
+			qint64 size = file.size();
+			std::vector<uchar> buf(size);
+			file.read((char*)buf.data(), size);
+			gaussian_filter = imdecode(buf, cv::IMREAD_COLOR);
 		}
+
+		cv::resize(gaussian_filter, gaussian_filter, cv::Size(new_image.cols, new_image.rows));
+		cv::add(gaussian_filter, cv::Scalar(150 - vignette*2.0, 150 - vignette*2.0, 150 - vignette*2.0), gaussian_filter);
+		gaussian_filter.convertTo(gaussian_filter, CV_32FC3);
+		new_image.convertTo(new_image, CV_32FC3);
+		cv::multiply(gaussian_filter, cv::Scalar(1/255.0, 1/255.0, 1/255.0), gaussian_filter);
+		cv::multiply(gaussian_filter, new_image, new_image);
+		new_image.convertTo(new_image, CV_8UC3);
 	}
 
 	cv::Mat im_gray;
