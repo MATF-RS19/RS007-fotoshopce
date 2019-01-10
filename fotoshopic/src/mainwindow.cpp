@@ -614,17 +614,19 @@ void MainWindow::on_label_clicked() {
 }
 
 void MainWindow::on_label_moved() {
-	auto diff = m_lb_image->get_diff();
-	cv::Mat current = m_image_list[m_image_index].get_current();
-	if (m_current_left - diff.first >= 0 && m_current_right - diff.first <= current.cols) {
-		m_current_left -= diff.first;
-		m_current_right -= diff.first;
+	if (m_has_image) {
+		auto diff = m_lb_image->get_diff();
+		cv::Mat current = m_image_list[m_image_index].get_current();
+		if (m_current_left - diff.first >= 0 && m_current_right - diff.first <= current.cols) {
+			m_current_left -= diff.first;
+			m_current_right -= diff.first;
+		}
+		if (m_current_top - diff.second >= 0 && m_current_bottom - diff.second <= current.rows) {
+			m_current_top -= diff.second;
+			m_current_bottom -= diff.second;
+		}
+		show_image();
 	}
-	if (m_current_top - diff.second >= 0 && m_current_bottom - diff.second <= current.rows) {
-		m_current_top -= diff.second;
-		m_current_bottom -= diff.second;
-	}
-	show_image();
 }
 
 void MainWindow::on_label_released() {
