@@ -1,9 +1,10 @@
-#include "headers/mainwindow.h"
-#include "ui_mainwindow.h"
-#include "headers/utils.h"
-#include "headers/section.h"
-
 #include <iostream>
+
+#include "ui_mainwindow.h"
+#include "headers/mainwindow.h"
+#include "headers/utils.h"
+#include "headers/image.h"
+#include "headers/section.h"
 
 
 /*
@@ -102,10 +103,10 @@ void MainWindow::show_image()
 {
 	if (m_has_image) {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
-		if (0 == m_image_list[m_image_index].m_type) {
+		if (image_type::grayscale == m_image_list[m_image_index].m_type) {
 			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
 			m_lb_image->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_Indexed8)));
-		} else if (1 == m_image_list[m_image_index].m_type) {
+		} else if (image_type::color == m_image_list[m_image_index].m_type) {
 			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
 			m_lb_image->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_RGB888)));
 		}
@@ -121,9 +122,9 @@ void MainWindow::save_image(const std::string& fileName)
 {
 	try {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
-		if (0 == m_img.m_type) {
+		if (image_type::grayscale == m_img.m_type) {
 			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
-		} else if (1 == m_img.m_type) {
+		} else if (image_type::color == m_img.m_type) {
 			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
 		}
 
@@ -155,12 +156,12 @@ void MainWindow::slider_operation(qstring_map<QSlider*> sliders, const QString &
 
 	QObject::connect(sliders[key], &QSlider::valueChanged, [this, key](auto &&e) {
 		if(m_has_image) {
-			ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
-			m_image_list[m_image_index].param_list.push_back(params);
-			m_image_list[m_image_index].index++;
-			m_image_list[m_image_index].param_list[m_image_list[m_image_index].index].adjustment_map[key] = e;
+			ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
+			m_image_list[m_image_index].m_param_list.push_back(params);
+			m_image_list[m_image_index].m_index++;
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].adjustment_map[key] = e;
 
-			m_slider_values.push_back(m_image_list[m_image_index].param_list[m_image_list[m_image_index].index].adjustment_map);
+			m_slider_values.push_back(m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].adjustment_map);
 			m_slider_index++;
 
 			delete_after_redo();
@@ -339,11 +340,11 @@ void MainWindow::on_action_ZoomOut_triggered()
 void MainWindow::on_action_Mirror_triggered()
 {
 	if (m_has_image) {
-		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
+		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		std::swap(params.corners[0], params.corners[1]);
 		std::swap(params.corners[2], params.corners[3]);
-		m_image_list[m_image_index].param_list.push_back(params);
-		m_image_list[m_image_index].index++;
+		m_image_list[m_image_index].m_param_list.push_back(params);
+		m_image_list[m_image_index].m_index++;
 		delete_after_redo();
 		show_image();
 	} else {
@@ -357,14 +358,14 @@ void MainWindow::on_action_Mirror_triggered()
 void MainWindow::on_action_Rotate_left_triggered()
 {
     if (m_has_image) {
-		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
+		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		auto a{params.corners[0]}, b{params.corners[1]}, c{params.corners[2]}, d{params.corners[3]};
 		params.corners[0] = b;
 		params.corners[1] = d;
 		params.corners[2] = a;
 		params.corners[3] = c;
-		m_image_list[m_image_index].param_list.push_back(params);
-		m_image_list[m_image_index].index++;
+		m_image_list[m_image_index].m_param_list.push_back(params);
+		m_image_list[m_image_index].m_index++;
 		delete_after_redo();
 		show_image();
     } else {
@@ -378,14 +379,14 @@ void MainWindow::on_action_Rotate_left_triggered()
 void MainWindow::on_action_Rotate_right_triggered()
 {
     if (m_has_image) {
-		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
+		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		auto a{params.corners[0]}, b{params.corners[1]}, c{params.corners[2]}, d{params.corners[3]};
 		params.corners[0] = c;
 		params.corners[1] = a;
 		params.corners[2] = d;
 		params.corners[3] = b;
-		m_image_list[m_image_index].param_list.push_back(params);
-		m_image_list[m_image_index].index++;
+		m_image_list[m_image_index].m_param_list.push_back(params);
+		m_image_list[m_image_index].m_index++;
 		delete_after_redo();
 		show_image();
     } else {
@@ -400,7 +401,7 @@ void MainWindow::on_action_Rotate_right_triggered()
 void MainWindow::on_btRGB_triggered()
 {
 	if (m_has_image) {
-		m_image_list[m_image_index].m_type = 1;
+		m_image_list[m_image_index].m_type = image_type::color;
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -413,7 +414,7 @@ void MainWindow::on_btRGB_triggered()
 void MainWindow::on_btGray_triggered()
 {
 	if (m_has_image) {
-		m_image_list[m_image_index].m_type = 0;
+		m_image_list[m_image_index].m_type = image_type::grayscale;
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -541,12 +542,12 @@ void MainWindow::on_action_Exit_triggered()
 void MainWindow::on_action_Undo_triggered()
 {
 	if (m_has_image) {
-		if (0 == m_image_list[m_image_index].index && 0 == m_image_index) {
+		if (0 == m_image_list[m_image_index].m_index && 0 == m_image_index) {
 			QMessageBox::warning(this, "Warning", "Nothing to undo");
-		} else if (0 == m_image_list[m_image_index].index) {
+		} else if (0 == m_image_list[m_image_index].m_index) {
 			m_image_index--;
 		} else {
-			m_image_list[m_image_index].index--;
+			m_image_list[m_image_index].m_index--;
 		}
 
 		if(m_slider_index) {
@@ -568,12 +569,12 @@ void MainWindow::on_action_Undo_triggered()
 void MainWindow::on_action_Redo_triggered()
 {
 	if (m_has_image) {
-		if (m_image_list[m_image_index].index + 1 == m_image_list[m_image_index].param_list.size() && m_image_index + 1 == m_image_list.size()) {
+		if (m_image_list[m_image_index].m_index + 1 == m_image_list[m_image_index].m_param_list.size() && m_image_index + 1 == m_image_list.size()) {
 			QMessageBox::warning(this, "Warning", "Nothing to redo");
-		} else if (m_image_list[m_image_index].index + 1 == m_image_list[m_image_index].param_list.size()) {
+		} else if (m_image_list[m_image_index].m_index + 1 == m_image_list[m_image_index].m_param_list.size()) {
 			m_image_index++;
 		} else {
-			m_image_list[m_image_index].index++;
+			m_image_list[m_image_index].m_index++;
 		}
 
 		if(m_slider_index < m_slider_values.size() - 1) {
@@ -597,9 +598,9 @@ void MainWindow::delete_after_redo() {
 		m_image_list.erase(m_image_list.begin() + int(m_image_index) + 1, m_image_list.end());
 	}
 
-	if (m_image_list[m_image_index].index != m_image_list[m_image_index].param_list.size()) {
-		m_image_list[m_image_index].param_list.erase(m_image_list[m_image_index].param_list.begin() + int(m_image_list[m_image_index].index) + 1,
-										   m_image_list[m_image_index].param_list.end());
+	if (m_image_list[m_image_index].m_index != m_image_list[m_image_index].m_param_list.size()) {
+		m_image_list[m_image_index].m_param_list.erase(m_image_list[m_image_index].m_param_list.begin() + int(m_image_list[m_image_index].m_index) + 1,
+										   m_image_list[m_image_index].m_param_list.end());
 	}
 
 	if(m_slider_index != m_slider_values.size()) {
