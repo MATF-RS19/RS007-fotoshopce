@@ -29,6 +29,8 @@
 #include "image_params.h"
 #include "section.h"
 #include "utils.h"
+#include "mouse_label.h"
+
 //#include "edit_operations.h"
 
 //template <typename T>
@@ -63,6 +65,9 @@ class MainWindow : public QMainWindow
         void on_action_Redo_triggered();
 	// Private member functions
 		void on_action_Crop_triggered();
+		void on_label_clicked();
+		void on_label_moved();
+		void on_label_released();
 
 	private:
 		void show_image();
@@ -73,11 +78,12 @@ class MainWindow : public QMainWindow
 		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one = true);
 		std::vector<std::pair<QPushButton*, filters>> create_section(QString name);
 		void delete_after_redo();
+		void update_edges(const cv::Mat& current);
 	// Private variables
 	private:
 		// Define the image
 		Ui::MainWindow *ui;
-		QLabel* m_lb_image;
+		MouseLabel* m_lb_image;
 		Image m_img;
 		bool m_has_image;
 		std::vector<Section*> m_sections;
@@ -87,5 +93,9 @@ class MainWindow : public QMainWindow
 		std::vector<qstring_map<int>> m_slider_values;
 		std::vector<std::pair<QPushButton*, filters>> m_filter_buttons;
 		std::vector<std::pair<QString, std::string>> m_filter_filenames;
+		int m_current_top;
+		int m_current_bottom;
+		int m_current_left;
+		int m_current_right;
 };
 

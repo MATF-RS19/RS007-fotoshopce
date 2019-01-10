@@ -5,6 +5,7 @@
 #include "headers/utils.h"
 #include "headers/image.h"
 #include "headers/section.h"
+#include "headers/mouse_label.h"
 
 
 /*
@@ -13,7 +14,7 @@
 MainWindow::MainWindow(QWidget *parent)
 	:	QMainWindow(parent),
 		ui{new Ui::MainWindow},
-		m_lb_image{new QLabel},
+		m_lb_image{new MouseLabel},
 		m_has_image{false},
 		m_slider_index{0},
 		m_slider_values(1),
@@ -31,6 +32,10 @@ MainWindow::MainWindow(QWidget *parent)
 						   qstring_pair(":/icons/icons/filters/hot.png", "Hot")}
 {
 	ui->setupUi(this);
+
+	connect(m_lb_image, SIGNAL(clicked()), this, SLOT(on_label_clicked()));
+	connect(m_lb_image, SIGNAL(moved()), this, SLOT(on_label_moved()));
+	connect(m_lb_image, SIGNAL(released()), this, SLOT(on_label_released()));
 
     // Disable spacing
 	// TODO: Adjust sidebar and image label size [@milanilic332]
@@ -122,12 +127,16 @@ void MainWindow::show_image()
 {
 	if (m_has_image) {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
+		// Getting current slice thats showing
+		cv::Rect myROI(m_current_left, m_current_top, m_current_right - m_current_left, m_current_bottom - m_current_top);
+		cv::Mat croppedImage = current(myROI);
+
 		if (image_type::grayscale == m_image_list[m_image_index].m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
-			m_lb_image->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_Indexed8)));
+			cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2GRAY);
+			m_lb_image->setPixmap(QPixmap::fromImage(QImage(croppedImage.data, croppedImage.cols, croppedImage.rows, int(croppedImage.step), QImage::Format_Indexed8)));
 		} else if (image_type::color == m_image_list[m_image_index].m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
-			m_lb_image->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_RGB888)));
+			cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2RGB);
+			m_lb_image->setPixmap(QPixmap::fromImage(QImage(croppedImage.data, croppedImage.cols, croppedImage.rows, int(croppedImage.step), QImage::Format_RGB888)));
 		}
 	} else {
 		m_lb_image->clear();
@@ -212,10 +221,14 @@ void MainWindow::on_action_Open_triggered()
 		m_image_list.clear();
 		m_slider_values.clear();
 		m_image_index = m_slider_index = 0;
+		cv::Mat current = cv::imread(fileName.toStdString());
 
-		Image img{cv::imread(filename.toStdString()), filename.toStdString()};
+		Image img{current, fileName.toStdString()};
 		m_image_list.push_back(img);
         m_has_image = true;
+
+		update_edges(current);
+
 		show_image();
 		setWindowTitle(filename);
 	} catch (...) {
@@ -364,6 +377,9 @@ void MainWindow::on_action_ZoomIn_triggered()
 	if (m_has_image) {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
 		cv::resize(current, current, cv::Size(), 1.1, 1.1);
+
+		update_edges(current);
+
 		Image img{current, m_image_list[m_image_index].m_filename};
 		m_image_list.push_back(img);
 		m_image_index++;
@@ -383,6 +399,9 @@ void MainWindow::on_action_ZoomOut_triggered()
 	if (m_has_image) {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
 		cv::resize(current, current, cv::Size(), 0.9, 0.9);
+
+		update_edges(current);
+
 		Image img{current, m_image_list[m_image_index].m_filename};
 		m_image_list.push_back(img);
 		m_image_index++;
@@ -425,6 +444,8 @@ void MainWindow::on_action_Rotate_left_triggered()
 		params.corners[3] = c;
 		m_image_list[m_image_index].m_param_list.push_back(params);
 		m_image_list[m_image_index].m_index++;
+		cv::Mat current = m_image_list[m_image_index].get_current();
+		update_edges(current);
 		delete_after_redo();
 		show_image();
     } else {
@@ -446,6 +467,8 @@ void MainWindow::on_action_Rotate_right_triggered()
 		params.corners[3] = b;
 		m_image_list[m_image_index].m_param_list.push_back(params);
 		m_image_list[m_image_index].m_index++;
+		cv::Mat current = m_image_list[m_image_index].get_current();
+		update_edges(current);
 		delete_after_redo();
 		show_image();
     } else {
@@ -501,41 +524,15 @@ void MainWindow::on_action_Delete_triggered()
 	}
 }
 
+// TODO: Croping
 void MainWindow::on_action_Crop_triggered()
 {
-//	if (m_has_image) {
-//		QDialog dialog(this);
-//		QFormLayout form(&dialog);
-//		QLabel screen{""};
-//		form.addRow(&screen);
+	if (m_has_image) {
 
-//		cv::Mat current{m_image_list[m_image_index].get_current()};
-//		if (0 == m_image_list[m_image_index].m_type) {
-//			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
-//			screen.setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_Indexed8)));
-//		} else if (1 == m_image_list[m_image_index].m_type) {
-//			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
-//			screen.setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_RGB888)));
-//		}
 
-//		QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
-//		form.addRow(&buttonBox);
-
-//		QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
-//		QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
-
-//		// TODO: Check if its int, maybe leaking memory idk
-//		if (dialog.exec() == QDialog::Accepted) {
-//			Image img{current, m_image_list[m_image_index].m_filename};
-//			m_image_list.push_back(img);
-//			m_image_index++;
-//			delete_after_redo();
-//			show_image();
-//		}
-
-//	} else {
-//		QMessageBox::warning(this, "Warning", "Nothing to crop");
-//	}
+	} else {
+		QMessageBox::warning(this, "Warning", "Nothing to crop");
+	}
 }
 
 /*
@@ -571,9 +568,13 @@ void MainWindow::on_action_Resize_triggered()
 		if (dialog.exec() == QDialog::Accepted) {
 			cv::Mat current{m_image_list[m_image_index].get_current()};
 			cv::resize(current, current, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
+
+			update_edges(current);
+
 			Image img{current, m_image_list[m_image_index].m_filename};
 			m_image_list.push_back(img);
 			m_image_index++;
+
 			delete_after_redo();
 			show_image();
 		}
@@ -667,3 +668,45 @@ void MainWindow::delete_after_redo() {
 	}
 }
 
+void MainWindow::on_label_clicked() {
+
+}
+
+void MainWindow::on_label_moved() {
+	if (m_has_image) {
+		auto diff = m_lb_image->get_diff();
+		cv::Mat current = m_image_list[m_image_index].get_current();
+		if (m_current_left - diff.first >= 0 && m_current_right - diff.first <= current.cols) {
+			m_current_left -= diff.first;
+			m_current_right -= diff.first;
+		}
+		if (m_current_top - diff.second >= 0 && m_current_bottom - diff.second <= current.rows) {
+			m_current_top -= diff.second;
+			m_current_bottom -= diff.second;
+		}
+		show_image();
+	}
+}
+
+void MainWindow::on_label_released() {
+
+}
+
+void MainWindow::update_edges(const cv::Mat& current) {
+	if (current.cols > 600) {
+		m_current_left = (current.cols - 600)/2;
+		m_current_right = current.cols - (current.cols - 600)/2;
+	}
+	else {
+		m_current_left = 0;
+		m_current_right = current.cols;
+	}
+	if (current.rows > 600) {
+		m_current_top = (current.rows - 600)/2;
+		m_current_bottom = current.rows - (current.rows - 600)/2;
+	}
+	else {
+		m_current_top = 0;
+		m_current_bottom = current.rows;
+	}
+}
