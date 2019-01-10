@@ -1,8 +1,9 @@
 #pragma once
 
-#include <functional>
 
+#include <functional>
 #include <QString>
+
 
 namespace std {
   template<> struct hash<QString> {
@@ -12,5 +13,12 @@ namespace std {
   };
 }
 
+
 template <typename T>
 using qstring_map = std::unordered_map<QString, T>;
+
+
+template <typename T>
+std::pair<QString, T> qstring_pair(std::string name, T &&value) {
+	return {QString::fromStdString(std::move(name)), value};
+}
