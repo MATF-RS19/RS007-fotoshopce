@@ -20,6 +20,27 @@ enum class image_corners
 
 
 /*
+* @brief Enum class representing filters.
+*/
+enum class filters
+{
+	none,
+	autumn,
+	bone,
+	jet,
+	winter,
+	rainbow,
+	ocean,
+	summer,
+	spring,
+	cool,
+	hsv,
+	pink,
+	hot,
+};
+
+
+/*
 * @brief Structure that represents image parameters.
 */
 struct ImageParams
@@ -27,6 +48,7 @@ struct ImageParams
 	ImageParams();
 
 	std::array<image_corners, 4> corners;
+	filters filter;
 	qstring_map<int> adjustment_map;
 };
 

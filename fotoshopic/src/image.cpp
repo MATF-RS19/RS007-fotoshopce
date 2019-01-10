@@ -1,3 +1,4 @@
+#include "headers/image_params.h"
 #include "headers/image.h"
 
 
@@ -117,10 +118,49 @@ cv::Mat Image::get_current()
 		}
 	}
 
-	cv::Mat im_gray;
-	cv::cvtColor(new_image, im_gray, cv::COLOR_RGB2GRAY);
-	cv::Mat im_color;
-	cv::applyColorMap(im_gray, new_image, cv::COLORMAP_JET);
+	// Apply filter
+	switch (param_list[index].filter)
+	{
+		case filters::none:
+			break;
+		case filters::autumn:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_AUTUMN);
+			break;
+		case filters::bone:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_BONE);
+			break;
+		case filters::jet:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_JET);
+			break;
+		case filters::winter:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_WINTER);
+			break;
+		case filters::rainbow:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_RAINBOW);
+			break;
+		case filters::ocean:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_OCEAN);
+			break;
+		case filters::summer:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_SUMMER);
+			break;
+		case filters::spring:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_SPRING);
+			break;
+		case filters::cool:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_COOL);
+			break;
+		case filters::hsv:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_HSV);
+			break;
+		case filters::pink:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_PINK);
+			break;
+		case filters::hot:
+			cv::cvtColor(new_image, new_image, cv::COLORMAP_HOT);
+			break;
+	}
+
 
 	return new_image;
 }
