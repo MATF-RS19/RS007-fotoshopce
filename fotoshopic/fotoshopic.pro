@@ -44,7 +44,6 @@ HEADERS += ./headers/image.h \
            ./headers/section.h \
            ./headers/utils.h \
            ./headers/image_params.h \
-		   ./headers/image_history.h \
 		   ./headers/operations/abstract_color_operation.hpp \
 		   ./headers/operations/blur_operation.hpp \
 		   ./headers/operations/brightness_operation.hpp \
