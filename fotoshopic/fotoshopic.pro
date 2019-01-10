@@ -29,16 +29,28 @@ QMAKE_CXXFLAGS += -std=c++17
 INCLUDEPATH += /usr/local/include/opencv4
 LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc -lopencv_dnn
 
-SOURCES += src/image.cpp \
-           src/main.cpp \
-           src/mainwindow.cpp \
-           src/section.cpp
+SOURCES += ./src/image.cpp \
+           ./src/main.cpp \
+           ./src/mainwindow.cpp \
+           ./src/section.cpp \
+		   ./src/operations/blur_operation.cpp \
+		   ./src/operations/brightness_operation.cpp \
+		   ./src/operations/contrast_operation.cpp \
+		   ./src/operations/sharpen_operation.cpp \
+		   ./src/utils/image_history.cpp
 
-HEADERS += headers/image.h \
-           headers/mainwindow.h \
-           headers/section.h \		  
-           headers/utils.h \
-           headers/image_params.h
+HEADERS += ./headers/image.h \
+           ./headers/mainwindow.h \
+           ./headers/section.h \
+           ./headers/utils.h \
+           ./headers/image_params.h \
+		   ./headers/image_history.h \
+		   ./headers/operations/abstract_color_operation.hpp \
+		   ./headers/operations/blur_operation.hpp \
+		   ./headers/operations/brightness_operation.hpp \
+		   ./headers/operations/contrast_operation.hpp \
+		   ./headers/operations/sharpen_operation.hpp \
+		   ./headers/utils/image_history.hpp
 
 FORMS += forms/mainwindow.ui
 
