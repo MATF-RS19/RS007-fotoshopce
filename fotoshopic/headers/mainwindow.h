@@ -71,6 +71,7 @@ class MainWindow : public QMainWindow
 		void slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value = 50);
 		qstring_map<QSlider*> create_section(QString name, const std::vector<QString> &contents);
 		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one = true);
+		std::vector<std::pair<QPushButton*, filters>> create_section(QString name);
 		void delete_after_redo();
 	// Private variables
 	private:
@@ -84,5 +85,7 @@ class MainWindow : public QMainWindow
 		qstring_map<QSlider*> m_sliders;
 		unsigned long m_image_index, m_slider_index;
 		std::vector<qstring_map<int>> m_slider_values;
+		std::vector<std::pair<QPushButton*, filters>> m_filter_buttons;
+		std::vector<std::pair<QString, std::string>> m_filter_filenames;
 };
 

@@ -122,40 +122,52 @@ cv::Mat Image::get_current()
 		case filters::none:
 			break;
 		case filters::autumn:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_AUTUMN);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_AUTUMN);
 			break;
 		case filters::bone:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_BONE);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_BONE);
 			break;
 		case filters::jet:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_JET);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_JET);
 			break;
 		case filters::winter:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_WINTER);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_WINTER);
 			break;
 		case filters::rainbow:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_RAINBOW);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_RAINBOW);
 			break;
 		case filters::ocean:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_OCEAN);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_OCEAN);
 			break;
 		case filters::summer:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_SUMMER);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_SUMMER);
 			break;
 		case filters::spring:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_SPRING);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_SPRING);
 			break;
 		case filters::cool:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_COOL);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_COOL);
 			break;
 		case filters::hsv:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_HSV);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_HSV);
 			break;
 		case filters::pink:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_PINK);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_PINK);
 			break;
 		case filters::hot:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_HOT);
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			cv::applyColorMap(new_image, new_image, cv::COLORMAP_HOT);
 			break;
 	}
 

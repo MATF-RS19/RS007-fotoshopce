@@ -16,7 +16,19 @@ MainWindow::MainWindow(QWidget *parent)
 		m_lb_image{new QLabel},
 		m_has_image{false},
 		m_slider_index{0},
-		m_slider_values(1)
+		m_slider_values(1),
+		m_filter_filenames{qstring_pair(":/icons/icons/filters/autumn.png", "Autumn"),
+						   qstring_pair(":/icons/icons/filters/bone.png", "Bone"),
+						   qstring_pair(":/icons/icons/filters/jet.png", "Jet"),
+						   qstring_pair(":/icons/icons/filters/winter.png", "Winter"),
+						   qstring_pair(":/icons/icons/filters/rainbow.png", "Rainbow"),
+						   qstring_pair(":/icons/icons/filters/ocean.png", "Ocean"),
+						   qstring_pair(":/icons/icons/filters/summer.png", "Summer"),
+						   qstring_pair(":/icons/icons/filters/spring.png", "Spring"),
+						   qstring_pair(":/icons/icons/filters/cool.png", "Cool"),
+						   qstring_pair(":/icons/icons/filters/hsv.png", "HSV"),
+						   qstring_pair(":/icons/icons/filters/pink.png", "Pink"),
+						   qstring_pair(":/icons/icons/filters/hot.png", "Hot")}
 {
 	ui->setupUi(this);
 
@@ -50,7 +62,14 @@ MainWindow::MainWindow(QWidget *parent)
 	capture_sliders(color_individual_sliders.first);
 
 	// Create filter section
-	auto filter_section{create_section("Filters", {}, 4, false)};
+	m_filter_buttons = create_section("Filters");
+
+	for(size_t i = 0; i < m_filter_buttons.size(); ++i)
+	{
+		m_filter_buttons[i].first->setIcon(QIcon(m_filter_filenames[i].first));
+		m_filter_buttons[i].first->setIconSize(QSize(65, 65));
+		m_filter_buttons[i].first->setToolTip(QString::fromStdString(m_filter_filenames[i].second));
+	}
 
 	// Setting Widget params
 	m_lb_image->setMinimumSize(600, 600);
@@ -188,19 +207,19 @@ void MainWindow::on_action_Open_triggered()
 
 	m_image_list.clear();
 
-    QString fileName{QFileDialog::getOpenFileName(this, "Open file")};
+	QString filename{QFileDialog::getOpenFileName(this, "Open file")};
 	try {
 		m_image_list.clear();
 		m_slider_values.clear();
 		m_image_index = m_slider_index = 0;
 
-		Image img{cv::imread(fileName.toStdString()), fileName.toStdString()};
+		Image img{cv::imread(filename.toStdString()), filename.toStdString()};
 		m_image_list.push_back(img);
         m_has_image = true;
 		show_image();
-		setWindowTitle(fileName);
+		setWindowTitle(filename);
 	} catch (...) {
-		QMessageBox::warning(this, "Warning", "Cannot open file" + fileName);
+		QMessageBox::warning(this, "Warning", "Cannot open file" + filename);
 	}
 }
 
@@ -225,6 +244,46 @@ qstring_map<QSlider*> MainWindow::create_section(QString name, const std::vector
 
     section->setContentLayout(*vbox);
     return sliders;
+}
+
+/*
+ * @brief Create one drop-down filter section.
+ */
+std::vector<std::pair<QPushButton*, filters>> MainWindow::create_section(QString name)
+{
+	Section *section{new Section(name, 300, this)};
+	m_sections.push_back(section);
+	ui->hlSide->addWidget(section);
+
+	auto *vbox{new QVBoxLayout};
+	vbox->setAlignment(Qt::AlignTop);
+
+	std::vector<std::pair<QPushButton*, filters>> filter_buttons;
+
+	std::vector<std::vector<filters>> filters{{filters::autumn, filters::bone, filters::jet},
+											  {filters::winter, filters::rainbow, filters::ocean},
+											  {filters::summer, filters::spring, filters::cool},
+											  {filters::hsv, filters::pink, filters::hot}};
+
+	for(size_t i = 0; i < 4; ++i)
+	{
+		auto *widget{new QWidget(this)};
+		auto *hbox{new QHBoxLayout};
+		hbox->setAlignment(Qt::AlignCenter);
+		widget->setLayout(hbox);
+		vbox->addWidget(widget);
+
+		for(size_t j = 0; j < 3; ++j)
+		{
+			auto *button{new QPushButton};
+			hbox->addWidget(button);
+			filter_buttons.push_back({button, filters[i][j]});
+		}
+	}
+
+	section->setContentLayout(*vbox);
+
+	return filter_buttons;
 }
 
 /*
