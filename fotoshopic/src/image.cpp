@@ -82,7 +82,6 @@ cv::Mat Image::get_current()
 	int hue{m_param_list[m_index].adjustment_map[QString::fromStdString("Hue")]};
 	int value{m_param_list[m_index].adjustment_map[QString::fromStdString("Value")]};
 
-
 	// Set the brightness value
 	double brightness_v{brightness - 50.0};
 
@@ -182,10 +181,12 @@ cv::Mat Image::get_current()
 	// Set the value value
 	double value_v{value / 50.0};
 
-	// Adjust image color settings
-	cv::cvtColor(new_image, new_image, cv::COLOR_RGB2HSV);
-	cv::multiply(new_image, cv::Scalar(hue_v, saturation_v, value_v), new_image);
-	cv::cvtColor(new_image, new_image, cv::COLOR_HSV2RGB);
+	// Adjust image color settings if needed
+	if(hue_v != 1.0 || saturation_v != 1.0 || value_v != 1.0) {
+		cv::cvtColor(new_image, new_image, cv::COLOR_RGB2HSV);
+		cv::multiply(new_image, cv::Scalar(hue_v, saturation_v, value_v), new_image);
+		cv::cvtColor(new_image, new_image, cv::COLOR_HSV2RGB);
+	}
 
 	return new_image;
 }
