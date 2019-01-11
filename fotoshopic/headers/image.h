@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <vector>
+
+#include <QFile>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -12,24 +15,32 @@
 #include "headers/image_params.h"
 #include "headers/utils.h"
 
+
+/* Forward declarations */
+class MainWindow;
+
 /*
-* @brief TODO: docstring [@milanilic332]
+* @brief Class representing an OpenCV image with utility parameters.
 */
 class Image
 {
+	// Friend declarations
+	friend MainWindow;
+
+	// Public member functions
 	public:
-		Image(const cv::Mat& img, const std::string& filename);
-		Image();
+		explicit Image(const cv::Mat& img = cv::Mat(), std::string filename = "");
 		~Image();
 
-		// Defining image
+	// Private member functions
+	private:
+		cv::Mat get_current();
+		void apply_filter(cv::Mat &img, int filter);
+
+	// Private member variables
+	private:
 		cv::Mat m_img;
 		std::string m_filename;
-
-		// Image params
-		int m_type;
-
-		std::vector<ImageParams> param_list;
-		unsigned long index{0};
-		cv::Mat get_current();
+		std::vector<ImageParams> m_param_list;
+		unsigned long m_index;
 };

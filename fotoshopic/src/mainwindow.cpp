@@ -1,9 +1,11 @@
-#include "headers/mainwindow.h"
-#include "ui_mainwindow.h"
-#include "headers/utils.h"
-#include "headers/section.h"
-
 #include <iostream>
+
+#include "ui_mainwindow.h"
+#include "headers/mainwindow.h"
+#include "headers/utils.h"
+#include "headers/image.h"
+#include "headers/section.h"
+#include "headers/mouse_label.h"
 
 
 /*
@@ -12,18 +14,33 @@
 MainWindow::MainWindow(QWidget *parent)
 	:	QMainWindow(parent),
 		ui{new Ui::MainWindow},
-		m_lb_image{new QLabel},
+		m_lb_image{new MouseLabel},
 		m_has_image{false},
 		m_slider_index{0},
-		m_slider_values(1)
+		m_slider_values(1),
+		m_filter_filenames{qstring_pair(":/icons/icons/filters/autumn.png", "Autumn"),
+						   qstring_pair(":/icons/icons/filters/bone.png", "Bone"),
+						   qstring_pair(":/icons/icons/filters/jet.png", "Jet"),
+						   qstring_pair(":/icons/icons/filters/winter.png", "Winter"),
+						   qstring_pair(":/icons/icons/filters/rainbow.png", "Rainbow"),
+						   qstring_pair(":/icons/icons/filters/ocean.png", "Ocean"),
+						   qstring_pair(":/icons/icons/filters/summer.png", "Summer"),
+						   qstring_pair(":/icons/icons/filters/spring.png", "Spring"),
+						   qstring_pair(":/icons/icons/filters/cool.png", "Cool"),
+						   qstring_pair(":/icons/icons/filters/hsv.png", "HSV"),
+						   qstring_pair(":/icons/icons/filters/pink.png", "Pink"),
+						   qstring_pair(":/icons/icons/filters/hot.png", "Hot")}
 {
 	ui->setupUi(this);
+
+	connect(m_lb_image, SIGNAL(clicked()), this, SLOT(on_label_clicked()));
+	connect(m_lb_image, SIGNAL(moved()), this, SLOT(on_label_moved()));
+	connect(m_lb_image, SIGNAL(released()), this, SLOT(on_label_released()));
 
     // Disable spacing
 	// TODO: Adjust sidebar and image label size [@milanilic332]
     auto *hlMain{new QHBoxLayout};
 	ui->mainContainer->setLayout(hlMain);
-	ui->mainContainer->setMaximumWidth(700);
     hlMain->setStretchFactor(hlMain, 30);
 
 	// Set side pannel alignment
@@ -35,6 +52,12 @@ MainWindow::MainWindow(QWidget *parent)
 	slider_operation(basic_sliders, "Brightness");
 	slider_operation(basic_sliders, "Contrast");
 
+	auto color_sliders{create_section("Color sliders", {"Hue", "Saturation", "Value"})};
+	capture_sliders(color_sliders);
+	slider_operation(color_sliders, "Hue");
+	slider_operation(color_sliders, "Saturation");
+	slider_operation(color_sliders, "Value");
+
 	// Create advanced photo adjustment sliders
 	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur"})};
 	capture_sliders(advanced_sliders);
@@ -42,25 +65,23 @@ MainWindow::MainWindow(QWidget *parent)
 	slider_operation(advanced_sliders, "Vignette", 0);
 	slider_operation(advanced_sliders, "Blur", 0);
 
-	// Create color photo adjustment sliders
-    auto color_sliders{create_section("Color settings", {"Saturation", "Luminance", "Temperature"})};
-	capture_sliders(color_sliders);
-	slider_operation(color_sliders, "Saturation");
-	slider_operation(color_sliders, "Luminance");
-	slider_operation(color_sliders, "Temperature");
+	// Create filter section
+	m_filter_buttons = create_section("Filters");
+	m_image_type_buttons = create_type_section("Image type");
 
-	// TODO: Add color selection [@dijana-z]
-	// Create individual color photo adjustment sliders
-    auto color_individual_sliders{create_section("Individual color settings", {"Hue", "Saturation", "Luminance"}, 3)};
-	capture_sliders(color_individual_sliders.first);
+	for(size_t i = 0; i < m_filter_buttons.size(); ++i)
+	{
+		m_filter_buttons[i].first->setIcon(QIcon(m_filter_filenames[i].first));
+		m_filter_buttons[i].first->setIconSize(QSize(65, 65));
+		m_filter_buttons[i].first->setToolTip(QString::fromStdString(m_filter_filenames[i].second));
+	}
 
 	// Setting Widget params
-	m_lb_image->setMinimumSize(600, 600);
-	m_lb_image->setMaximumSize(600, 600);
+	m_lb_image->setMinimumSize(ui->centralWidget->width(), ui->centralWidget->height());
 
 	// Future use for cropping
 	m_lb_image->setMouseTracking(true);
-	m_lb_image->setStyleSheet("QLabel { background-color : #CCCCCC; }");
+	m_lb_image->setStyleSheet("QLabel { background-color : #191919; }");
 	m_lb_image->setAlignment(Qt::AlignCenter);
 
 	// Add image to main widget
@@ -105,13 +126,15 @@ void MainWindow::show_image()
 {
 	if (m_has_image) {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
-		if (0 == m_image_list[m_image_index].m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
-			m_lb_image->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_Indexed8)));
-		} else if (1 == m_image_list[m_image_index].m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
-			m_lb_image->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_RGB888)));
-		}
+		// Getting current slice thats showing
+		cv::Rect myROI(m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left,
+					   m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top,
+					   m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right - m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left,
+					   m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom - m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top);
+		cv::Mat croppedImage = current(myROI);
+
+		cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2RGB);
+		m_lb_image->setPixmap(QPixmap::fromImage(QImage(croppedImage.data, croppedImage.cols, croppedImage.rows, int(croppedImage.step), QImage::Format_RGB888)));
 	} else {
 		m_lb_image->clear();
 	}
@@ -120,19 +143,14 @@ void MainWindow::show_image()
 /*
 * @brief Save image according to its type (either RGB or grayscale).
 */
-void MainWindow::save_image(const std::string& fileName)
+void MainWindow::save_image(const std::string& filename)
 {
 	try {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
-		if (0 == m_img.m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
-		} else if (1 == m_img.m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
-		}
-
-		cv::imwrite(fileName, current);
+		m_image_list[m_image_index].m_filename = filename;
+		cv::imwrite(filename, current);
 	} catch (...) {
-		QMessageBox::warning(this, "Warning", "Cannot save file" + QString::fromStdString(fileName));
+		QMessageBox::warning(this, "Warning", "Cannot save file" + QString::fromStdString(filename));
 	}
 }
 
@@ -146,34 +164,29 @@ void MainWindow::capture_sliders(const qstring_map<QSlider*> sliders)
 	}
 }
 
-
 /*
 * @brief Set initial slider value and define slider movement trigger.
 */
 void MainWindow::slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value)
 {
 	sliders[key]->setSliderPosition(value);
+	sliders[key]->setTracking(false);
 	m_slider_values.front()[key] = value;
 
-	QObject::connect(sliders[key], &QSlider::sliderMoved, [this, key](auto &&e) {
+	QObject::connect(sliders[key], &QSlider::valueChanged, [key, sliders, value, this](auto &&e) {
 		if(m_has_image) {
-			m_image_list[m_image_index].param_list[m_image_list[m_image_index].index].adjustment_map[key] = e;
+			ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
+			m_image_list[m_image_index].m_param_list.push_back(params);
+			m_image_list[m_image_index].m_index++;
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].adjustment_map[key] = e;
 
-			cv::Mat current{m_image_list[m_image_index].get_current()};
-			Image img(current, m_image_list[m_image_index].m_filename);
-
-			ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
-			m_image_list[m_image_index].param_list.push_back(params);
-			m_image_list[m_image_index].index++;
-
-			auto slider_values{m_slider_values.back()};
-			slider_values[key] = e;
-			m_slider_values.push_back(std::move(slider_values));
+			m_slider_values.push_back(m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].adjustment_map);
 			m_slider_index++;
 
 			delete_after_redo();
 			show_image();
 		} else {
+			sliders.at(key)->setSliderPosition(value);
 			QMessageBox::warning(this, "Warning", "No image to adjust.");
 		}
 	});
@@ -195,21 +208,34 @@ void MainWindow::on_action_Open_triggered()
 
 	m_image_list.clear();
 
-    QString fileName{QFileDialog::getOpenFileName(this, "Open file")};
+	QString filename{QFileDialog::getOpenFileName(this, "Open file")};
 	try {
-		Image img{cv::imread(fileName.toStdString()), fileName.toStdString()};
+		m_image_list.clear();
+		m_slider_values.clear();
+		m_image_index = m_slider_index = 0;
+		cv::Mat current = cv::imread(filename.toStdString());
+
+		for(auto &&e : ImageParams().adjustment_map) {
+			m_sliders[e.first]->setSliderPosition(e.second);
+		}
+
+		Image img{current, filename.toStdString()};
 		m_image_list.push_back(img);
-		m_image_index = 0;
         m_has_image = true;
+
+		update_edges(current);
+
+		ui->statusBar->showMessage(filename);
+
 		show_image();
-		setWindowTitle(fileName);
+		setWindowTitle(filename);
 	} catch (...) {
-		QMessageBox::warning(this, "Warning", "Cannot open file" + fileName);
+		QMessageBox::warning(this, "Warning", "Cannot open file" + filename);
 	}
 }
 
 /*
-* @brief Create one drop-down slider section.
+* @brief Create drop-down slider section.
 */
 qstring_map<QSlider*> MainWindow::create_section(QString name, const std::vector<QString> &contents)
 {
@@ -232,46 +258,113 @@ qstring_map<QSlider*> MainWindow::create_section(QString name, const std::vector
 }
 
 /*
-* @brief Create one drop-down section with individual color selection.
-*/
-std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons)
+ * @brief Create drop-down filter section.
+ */
+std::vector<std::pair<QPushButton*, filters>> MainWindow::create_section(QString name)
 {
-    Section *section{new Section(name, 300, this)};
+	Section *section{new Section(name, 300, this)};
 	m_sections.push_back(section);
-    ui->hlSide->addWidget(section);
+	ui->hlSide->addWidget(section);
 
-    auto *rbuttons{new QWidget(this)};
+	auto *vbox{new QVBoxLayout};
+	vbox->setAlignment(Qt::AlignTop);
 
-    auto *hbox{new QHBoxLayout};
-    hbox->setAlignment(Qt::AlignCenter);
-    auto *toggle_group{new QButtonGroup(hbox)};
+	std::vector<std::pair<QPushButton*, filters>> filter_buttons;
 
-    for(int i = 0; i < buttons; ++i)
-    {
-        auto *rbutton{new QRadioButton};
-        hbox->addWidget(rbutton);
-        toggle_group->addButton(rbutton);
-    }
+	std::vector<std::vector<filters>> filters{{filters::autumn, filters::bone, filters::jet},
+											  {filters::winter, filters::rainbow, filters::ocean},
+											  {filters::summer, filters::spring, filters::cool},
+											  {filters::hsv, filters::pink, filters::hot}};
 
-    rbuttons->setLayout(hbox);
+	for(auto &&row : filters)
+	{
+		auto *widget{new QWidget(this)};
+		auto *hbox{new QHBoxLayout};
+		hbox->setAlignment(Qt::AlignCenter);
+		widget->setLayout(hbox);
+		vbox->addWidget(widget);
 
-    auto *vbox{new QVBoxLayout()};
-	qstring_map<QSlider*> sliders;
-    vbox->addWidget(rbuttons);
+		for(auto &&col : row)
+		{
+			auto *button{new QPushButton};
+			hbox->addWidget(button);
+			filter_buttons.push_back({button, col});
+			auto b_filter{col};
+			button->setCheckable(true);
+			button->setChecked(false);
 
-    for(auto &&e : contents)
-    {
-        vbox->addWidget(new QLabel(e, section));
-		sliders[e] = new QSlider(Qt::Horizontal, section);
-		vbox->addWidget(sliders[e]);
-    }
-
-	if(buttons) {
-		toggle_group->buttons()[0]->setChecked(true);
+			QObject::connect(button, &QPushButton::clicked, [button, b_filter, this](auto &&e) {
+				if(m_has_image) {
+					ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
+					for(auto &&e : m_filter_buttons) {
+						if(e.first->isChecked() && e.first != button) {
+							e.first->setChecked(false);
+						}
+					}
+					params.filter = e ? b_filter : filters::none;
+					m_image_list[m_image_index].m_param_list.push_back(params);
+					m_image_list[m_image_index].m_index++;
+					delete_after_redo();
+					show_image();
+				} else {
+					QMessageBox::warning(this, "Warning", "No image to adjust.");
+				}
+			});
+		}
 	}
 
-    section->setContentLayout(*vbox);
-    return {sliders, toggle_group};
+	section->setContentLayout(*vbox);
+
+	return filter_buttons;
+}
+
+/*
+ * @brief Create drop-down image type section.
+ */
+std::vector<std::pair<QPushButton*, image_type>> MainWindow::create_type_section(QString name)
+{
+	Section *section{new Section(name, 300, this)};
+	m_sections.push_back(section);
+	ui->hlSide->addWidget(section);
+
+	auto *vbox{new QVBoxLayout};
+	vbox->setAlignment(Qt::AlignTop);
+
+	std::vector<std::pair<QPushButton*, image_type>> image_type_buttons;
+	std::vector<std::pair<image_type, QString>> image_types{{image_type::grayscale, QString::fromStdString("Grayscale")},
+															   {image_type::color, QString::fromStdString("Color")}};
+
+	for(auto &&img_type : image_types)
+	{
+		auto *button{new QPushButton};
+		vbox->addWidget(button);
+		image_type_buttons.push_back({button, img_type.first});
+		auto b_type{img_type.first};
+		button->setCheckable(true);
+		button->setChecked(false);
+		button->setToolTip(img_type.second);
+		button->setText(img_type.second);
+
+		QObject::connect(button, &QPushButton::clicked, [b_type, this](auto &&e) {
+			if(m_has_image) {
+				ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
+				for(auto &&e : m_image_type_buttons) {
+					e.first->setChecked(false);
+				}
+				params.img_type = e ? b_type : image_type::color;
+				m_image_list[m_image_index].m_param_list.push_back(params);
+				m_image_list[m_image_index].m_index++;
+				delete_after_redo();
+				show_image();
+			} else {
+				QMessageBox::warning(this, "Warning", "No image to adjust.");
+			}
+		});
+	}
+
+	section->setContentLayout(*vbox);
+
+	return image_type_buttons;
 }
 
 /*
@@ -312,6 +405,7 @@ void MainWindow::on_action_ZoomIn_triggered()
 		Image img{current, m_image_list[m_image_index].m_filename};
 		m_image_list.push_back(img);
 		m_image_index++;
+		update_edges(current);
 		delete_after_redo();
 		show_image();
 	} else {
@@ -331,6 +425,7 @@ void MainWindow::on_action_ZoomOut_triggered()
 		Image img{current, m_image_list[m_image_index].m_filename};
 		m_image_list.push_back(img);
 		m_image_index++;
+		update_edges(current);
 		delete_after_redo();
 		show_image();
 	} else {
@@ -344,11 +439,13 @@ void MainWindow::on_action_ZoomOut_triggered()
 void MainWindow::on_action_Mirror_triggered()
 {
 	if (m_has_image) {
-		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
+		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		std::swap(params.corners[0], params.corners[1]);
 		std::swap(params.corners[2], params.corners[3]);
-		m_image_list[m_image_index].param_list.push_back(params);
-		m_image_list[m_image_index].index++;
+		m_image_list[m_image_index].m_param_list.push_back(params);
+		m_image_list[m_image_index].m_index++;
+		cv::Mat current{m_image_list[m_image_index].get_current()};
+		update_edges(current);
 		delete_after_redo();
 		show_image();
 	} else {
@@ -362,14 +459,16 @@ void MainWindow::on_action_Mirror_triggered()
 void MainWindow::on_action_Rotate_left_triggered()
 {
     if (m_has_image) {
-		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
+		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		auto a{params.corners[0]}, b{params.corners[1]}, c{params.corners[2]}, d{params.corners[3]};
 		params.corners[0] = b;
 		params.corners[1] = d;
 		params.corners[2] = a;
 		params.corners[3] = c;
-		m_image_list[m_image_index].param_list.push_back(params);
-		m_image_list[m_image_index].index++;
+		m_image_list[m_image_index].m_param_list.push_back(params);
+		m_image_list[m_image_index].m_index++;
+		cv::Mat current = m_image_list[m_image_index].get_current();
+		update_edges(current);
 		delete_after_redo();
 		show_image();
     } else {
@@ -383,46 +482,21 @@ void MainWindow::on_action_Rotate_left_triggered()
 void MainWindow::on_action_Rotate_right_triggered()
 {
     if (m_has_image) {
-		ImageParams params{m_image_list[m_image_index].param_list[m_image_list[m_image_index].index]};
+		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		auto a{params.corners[0]}, b{params.corners[1]}, c{params.corners[2]}, d{params.corners[3]};
 		params.corners[0] = c;
 		params.corners[1] = a;
 		params.corners[2] = d;
 		params.corners[3] = b;
-		m_image_list[m_image_index].param_list.push_back(params);
-		m_image_list[m_image_index].index++;
+		m_image_list[m_image_index].m_param_list.push_back(params);
+		m_image_list[m_image_index].m_index++;
+		cv::Mat current = m_image_list[m_image_index].get_current();
+		update_edges(current);
 		delete_after_redo();
 		show_image();
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
     }
-}
-
-
-/*
-* @brief Convert image to RGB.
-*/
-void MainWindow::on_btRGB_triggered()
-{
-	if (m_has_image) {
-		m_image_list[m_image_index].m_type = 1;
-		show_image();
-	} else {
-		QMessageBox::warning(this, "Warning", "Image not loaded");
-	}
-}
-
-/*
-* @brief Convert image to grayscale.
-*/
-void MainWindow::on_btGray_triggered()
-{
-	if (m_has_image) {
-		m_image_list[m_image_index].m_type = 0;
-		show_image();
-	} else {
-		QMessageBox::warning(this, "Warning", "Image not loaded");
-	}
 }
 
 /*
@@ -435,13 +509,25 @@ void MainWindow::on_action_Delete_triggered()
 		reply = QMessageBox::question(this, "Warning", "Are you sure you want to delete current image?", QMessageBox::Yes | QMessageBox::No);
 		if (reply == QMessageBox::Yes) {
 			m_image_list.clear();
-			m_image_index = 0;
+			m_slider_values.clear();
+			m_image_index = m_slider_index = 0;
 			m_has_image = false;
 			show_image();
 		}
 
 	} else {
 		QMessageBox::warning(this, "Warning", "Nothing to delete");
+	}
+}
+
+// TODO: Croping
+void MainWindow::on_action_Crop_triggered()
+{
+	if (m_has_image) {
+
+
+	} else {
+		QMessageBox::warning(this, "Warning", "Nothing to crop");
 	}
 }
 
@@ -478,9 +564,13 @@ void MainWindow::on_action_Resize_triggered()
 		if (dialog.exec() == QDialog::Accepted) {
 			cv::Mat current{m_image_list[m_image_index].get_current()};
 			cv::resize(current, current, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
+
+			update_edges(current);
+
 			Image img{current, m_image_list[m_image_index].m_filename};
 			m_image_list.push_back(img);
 			m_image_index++;
+
 			delete_after_redo();
 			show_image();
 		}
@@ -508,12 +598,12 @@ void MainWindow::on_action_Exit_triggered()
 void MainWindow::on_action_Undo_triggered()
 {
 	if (m_has_image) {
-		if (0 == m_image_list[m_image_index].index && 0 == m_image_index) {
+		if (0 == m_image_list[m_image_index].m_index && 0 == m_image_index) {
 			QMessageBox::warning(this, "Warning", "Nothing to undo");
-		} else if (0 == m_image_list[m_image_index].index) {
+		} else if (0 == m_image_list[m_image_index].m_index) {
 			m_image_index--;
 		} else {
-			m_image_list[m_image_index].index--;
+			m_image_list[m_image_index].m_index--;
 		}
 
 		if(m_slider_index) {
@@ -535,12 +625,12 @@ void MainWindow::on_action_Undo_triggered()
 void MainWindow::on_action_Redo_triggered()
 {
 	if (m_has_image) {
-		if (m_image_list[m_image_index].index + 1 == m_image_list[m_image_index].param_list.size() && m_image_index + 1 == m_image_list.size()) {
+		if (m_image_list[m_image_index].m_index + 1 == m_image_list[m_image_index].m_param_list.size() && m_image_index + 1 == m_image_list.size()) {
 			QMessageBox::warning(this, "Warning", "Nothing to redo");
-		} else if (m_image_list[m_image_index].index + 1 == m_image_list[m_image_index].param_list.size()) {
+		} else if (m_image_list[m_image_index].m_index + 1 == m_image_list[m_image_index].m_param_list.size()) {
 			m_image_index++;
 		} else {
-			m_image_list[m_image_index].index++;
+			m_image_list[m_image_index].m_index++;
 		}
 
 		if(m_slider_index < m_slider_values.size() - 1) {
@@ -564,8 +654,62 @@ void MainWindow::delete_after_redo() {
 		m_image_list.erase(m_image_list.begin() + int(m_image_index) + 1, m_image_list.end());
 	}
 
-	if (m_image_list[m_image_index].index != m_image_list[m_image_index].param_list.size()) {
-		m_image_list[m_image_index].param_list.erase(m_image_list[m_image_index].param_list.begin() + int(m_image_list[m_image_index].index) + 1,
-										   m_image_list[m_image_index].param_list.end());
+	if (m_image_list[m_image_index].m_index != m_image_list[m_image_index].m_param_list.size()) {
+		m_image_list[m_image_index].m_param_list.erase(m_image_list[m_image_index].m_param_list.begin() + int(m_image_list[m_image_index].m_index) + 1,
+										   m_image_list[m_image_index].m_param_list.end());
+	}
+
+	if(m_slider_index != m_slider_values.size()) {
+		m_slider_values.erase(m_slider_values.begin() + int(m_slider_index), m_slider_values.end());
 	}
 }
+
+void MainWindow::on_label_clicked() {
+
+}
+
+void MainWindow::on_label_moved() {
+	if (m_has_image) {
+		auto diff = m_lb_image->get_diff();
+		cv::Mat current = m_image_list[m_image_index].get_current();
+		if (m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left - diff.first >= 0 &&
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right - diff.first <= current.cols) {
+
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left -= diff.first;
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right -= diff.first;
+		}
+		if (m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top - diff.second >= 0 &&
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom - diff.second <= current.rows) {
+
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top -= diff.second;
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom -= diff.second;
+		}
+		show_image();
+	}
+}
+
+void MainWindow::on_label_released() {
+
+}
+
+void MainWindow::update_edges(const cv::Mat& current) {
+	auto current_width{m_lb_image->size().width()};
+	auto current_height{m_lb_image->size().height()};
+	if (current.cols > current_width) {
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left = (current.cols - current_width)/2;
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right = current.cols - (current.cols - current_width)/2;
+	}
+	else {
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left = 0;
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right = current.cols;
+	}
+	if (current.rows > current_height) {
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top = (current.rows - current_height)/2;
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom = current.rows - (current.rows - current_height)/2;
+	}
+	else {
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top = 0;
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom = current.rows;
+	}
+}
+

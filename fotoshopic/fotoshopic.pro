@@ -33,13 +33,14 @@ SOURCES += src/image.cpp \
            src/main.cpp \
            src/mainwindow.cpp \
            src/section.cpp \
-		   src/image_params.cpp
+           src/mouse_label.cpp
 
 HEADERS += headers/image.h \
            headers/mainwindow.h \
            headers/section.h \		  
            headers/utils.h \
-           headers/image_params.h
+           headers/image_params.h \
+           headers/mouse_label.h
 
 FORMS += forms/mainwindow.ui
 
@@ -48,5 +49,6 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-RESOURCES += resources/icons.qrc
+RESOURCES += resources/icons.qrc \
+             resources/images.qrc
 
