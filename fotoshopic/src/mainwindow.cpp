@@ -41,7 +41,6 @@ MainWindow::MainWindow(QWidget *parent)
 	// TODO: Adjust sidebar and image label size [@milanilic332]
     auto *hlMain{new QHBoxLayout};
 	ui->mainContainer->setLayout(hlMain);
-	ui->mainContainer->setMaximumWidth(700);
     hlMain->setStretchFactor(hlMain, 30);
 
 	// Set side pannel alignment
@@ -77,12 +76,11 @@ MainWindow::MainWindow(QWidget *parent)
 	}
 
 	// Setting Widget params
-	m_lb_image->setMinimumSize(600, 600);
-	m_lb_image->setMaximumSize(600, 600);
+	m_lb_image->setMinimumSize(ui->centralWidget->width(), ui->centralWidget->height());
 
 	// Future use for cropping
 	m_lb_image->setMouseTracking(true);
-	m_lb_image->setStyleSheet("QLabel { background-color : #CCCCCC; }");
+	m_lb_image->setStyleSheet("QLabel { background-color : #191919; }");
 	m_lb_image->setAlignment(Qt::AlignCenter);
 
 	// Add image to main widget
@@ -128,7 +126,10 @@ void MainWindow::show_image()
 	if (m_has_image) {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
 		// Getting current slice thats showing
-		cv::Rect myROI(m_current_left, m_current_top, m_current_right - m_current_left, m_current_bottom - m_current_top);
+		cv::Rect myROI(m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left,
+					   m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top,
+					   m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right - m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left,
+					   m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom - m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top);
 		cv::Mat croppedImage = current(myROI);
 
 		if (image_type::grayscale == m_image_list[m_image_index].m_type) {
@@ -228,6 +229,8 @@ void MainWindow::on_action_Open_triggered()
         m_has_image = true;
 
 		update_edges(current);
+
+		ui->statusBar->showMessage(filename);
 
 		show_image();
 		setWindowTitle(filename);
@@ -355,12 +358,10 @@ void MainWindow::on_action_ZoomIn_triggered()
 	if (m_has_image) {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
 		cv::resize(current, current, cv::Size(), 1.1, 1.1);
-
-		update_edges(current);
-
 		Image img{current, m_image_list[m_image_index].m_filename};
 		m_image_list.push_back(img);
 		m_image_index++;
+		update_edges(current);
 		delete_after_redo();
 		show_image();
 	} else {
@@ -377,12 +378,10 @@ void MainWindow::on_action_ZoomOut_triggered()
 	if (m_has_image) {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
 		cv::resize(current, current, cv::Size(), 0.9, 0.9);
-
-		update_edges(current);
-
 		Image img{current, m_image_list[m_image_index].m_filename};
 		m_image_list.push_back(img);
 		m_image_index++;
+		update_edges(current);
 		delete_after_redo();
 		show_image();
 	} else {
@@ -401,6 +400,8 @@ void MainWindow::on_action_Mirror_triggered()
 		std::swap(params.corners[2], params.corners[3]);
 		m_image_list[m_image_index].m_param_list.push_back(params);
 		m_image_list[m_image_index].m_index++;
+		cv::Mat current{m_image_list[m_image_index].get_current()};
+		update_edges(current);
 		delete_after_redo();
 		show_image();
 	} else {
@@ -654,13 +655,17 @@ void MainWindow::on_label_moved() {
 	if (m_has_image) {
 		auto diff = m_lb_image->get_diff();
 		cv::Mat current = m_image_list[m_image_index].get_current();
-		if (m_current_left - diff.first >= 0 && m_current_right - diff.first <= current.cols) {
-			m_current_left -= diff.first;
-			m_current_right -= diff.first;
+		if (m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left - diff.first >= 0 &&
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right - diff.first <= current.cols) {
+
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left -= diff.first;
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right -= diff.first;
 		}
-		if (m_current_top - diff.second >= 0 && m_current_bottom - diff.second <= current.rows) {
-			m_current_top -= diff.second;
-			m_current_bottom -= diff.second;
+		if (m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top - diff.second >= 0 &&
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom - diff.second <= current.rows) {
+
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top -= diff.second;
+			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom -= diff.second;
 		}
 		show_image();
 	}
@@ -671,20 +676,23 @@ void MainWindow::on_label_released() {
 }
 
 void MainWindow::update_edges(const cv::Mat& current) {
-	if (current.cols > 600) {
-		m_current_left = (current.cols - 600)/2;
-		m_current_right = current.cols - (current.cols - 600)/2;
+	auto current_width{m_lb_image->size().width()};
+	auto current_height{m_lb_image->size().height()};
+	if (current.cols > current_width) {
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left = (current.cols - current_width)/2;
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right = current.cols - (current.cols - current_width)/2;
 	}
 	else {
-		m_current_left = 0;
-		m_current_right = current.cols;
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left = 0;
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right = current.cols;
 	}
-	if (current.rows > 600) {
-		m_current_top = (current.rows - 600)/2;
-		m_current_bottom = current.rows - (current.rows - 600)/2;
+	if (current.rows > current_height) {
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top = (current.rows - current_height)/2;
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom = current.rows - (current.rows - current_height)/2;
 	}
 	else {
-		m_current_top = 0;
-		m_current_bottom = current.rows;
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top = 0;
+		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom = current.rows;
 	}
 }
+

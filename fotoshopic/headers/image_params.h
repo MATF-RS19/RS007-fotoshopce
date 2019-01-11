@@ -48,6 +48,10 @@ struct ImageParams
 {
 	std::array<image_corners, 4> corners{image_corners::top_left, image_corners::top_right, image_corners::bottom_left, image_corners::bottom_right};
 	filters filter{filters::none};
+	int m_current_top{-1};
+	int m_current_bottom{-1};
+	int m_current_left{-1};
+	int m_current_right{-1};
 	// TODO: Remove hardcoded values.
 	qstring_map<int> adjustment_map{qstring_pair("Contrast", 50),
 									qstring_pair("Brightness", 50),

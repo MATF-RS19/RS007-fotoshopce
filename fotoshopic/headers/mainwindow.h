@@ -93,9 +93,5 @@ class MainWindow : public QMainWindow
 		std::vector<qstring_map<int>> m_slider_values;
 		std::vector<std::pair<QPushButton*, filters>> m_filter_buttons;
 		std::vector<std::pair<QString, std::string>> m_filter_filenames;
-		int m_current_top;
-		int m_current_bottom;
-		int m_current_left;
-		int m_current_right;
 };
 
