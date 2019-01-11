@@ -16,20 +16,12 @@ namespace rs::utils
 	*/
 	class image_history
 	{
-		/* Private internal enum class */
-		enum class entry_type
-		{
-			parameters,
-			image,
-		};
 
 		/* Public member functions */
 		public:
+			inline Image current() const { return m_entries[m_position]; }
 			void set_initial(const Image &img);
 			void add_entry(const Image &img);
-			void add_entry(const ImageParams &params);
-			Image current() const;
-			inline ImageParams last_params() const { return m_params[m_param_index]; }
 			Image undo();
 			Image redo();
 
@@ -39,11 +31,8 @@ namespace rs::utils
 
 		/* Private member variables */
 		private:
-			Image m_original;
-			std::vector<Image> m_images;
-			std::vector<ImageParams> m_params;
-			std::vector<entry_type> m_types;
-			size_t m_image_index, m_param_index, m_type_index;
+			std::vector<Image> m_entries;
+			size_t m_position;
 	};
 
 } // namespace rs:::utils
