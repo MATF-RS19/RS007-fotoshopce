@@ -25,9 +25,11 @@ namespace rs::utils
 
 		/* Public member functions */
 		public:
-			explicit image_history(const Image &img);
+			void set_initial(const Image &img);
 			void add_entry(const Image &img);
 			void add_entry(const ImageParams &params);
+			Image current() const;
+			inline ImageParams last_params() const { return m_params[m_param_index]; }
 			Image undo();
 			Image redo();
 
@@ -37,6 +39,7 @@ namespace rs::utils
 
 		/* Private member variables */
 		private:
+			Image m_original;
 			std::vector<Image> m_images;
 			std::vector<ImageParams> m_params;
 			std::vector<entry_type> m_types;
