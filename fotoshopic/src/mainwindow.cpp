@@ -48,11 +48,16 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->hlSide->setAlignment(Qt::AlignTop);
 
 	// Create basic photo adjustment sliders
-	auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Saturation"})};
+	auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast"})};
 	capture_sliders(basic_sliders);
 	slider_operation(basic_sliders, "Brightness");
 	slider_operation(basic_sliders, "Contrast");
-	slider_operation(basic_sliders, "Saturation");
+
+	auto color_sliders{create_section("Color sliders", {"Hue", "Saturation", "Value"})};
+	capture_sliders(color_sliders);
+	slider_operation(color_sliders, "Hue");
+	slider_operation(color_sliders, "Saturation");
+	slider_operation(color_sliders, "Value");
 
 	// Create advanced photo adjustment sliders
 	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur"})};
@@ -60,11 +65,6 @@ MainWindow::MainWindow(QWidget *parent)
 	slider_operation(advanced_sliders, "Sharpen", 0);
 	slider_operation(advanced_sliders, "Vignette", 0);
 	slider_operation(advanced_sliders, "Blur", 0);
-
-	// TODO: Add color selection [@dijana-z]
-	// Create individual color photo adjustment sliders
-    auto color_individual_sliders{create_section("Individual color settings", {"Hue", "Saturation", "Luminance"}, 3)};
-	capture_sliders(color_individual_sliders.first);
 
 	// Create filter section
 	m_filter_buttons = create_section("Filters");
@@ -318,49 +318,6 @@ std::vector<std::pair<QPushButton*, filters>> MainWindow::create_section(QString
 	section->setContentLayout(*vbox);
 
 	return filter_buttons;
-}
-
-/*
-* @brief Create drop-down section with individual color selection.
-*/
-std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one)
-{
-    Section *section{new Section(name, 300, this)};
-	m_sections.push_back(section);
-    ui->hlSide->addWidget(section);
-
-    auto *rbuttons{new QWidget(this)};
-
-    auto *hbox{new QHBoxLayout};
-    hbox->setAlignment(Qt::AlignCenter);
-    auto *toggle_group{new QButtonGroup(hbox)};
-
-    for(int i = 0; i < buttons; ++i)
-    {
-        auto *rbutton{new QRadioButton};
-        hbox->addWidget(rbutton);
-        toggle_group->addButton(rbutton);
-    }
-
-    rbuttons->setLayout(hbox);
-
-    auto *vbox{new QVBoxLayout()};
-	qstring_map<QSlider*> sliders;
-    vbox->addWidget(rbuttons);
-
-    for(auto &&e : contents)
-    {
-        vbox->addWidget(new QLabel(e, section));
-		sliders[e] = new QSlider(Qt::Horizontal, section);
-		vbox->addWidget(sliders[e]);
-    }
-
-	if(buttons && select_one) {
-		toggle_group->buttons()[0]->setChecked(true);
-	}
-
-    section->setContentLayout(*vbox);
-    return {sliders, toggle_group};
 }
 
 /*

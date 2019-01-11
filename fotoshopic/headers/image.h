@@ -46,7 +46,7 @@ class Image
 	// Private member functions
 	private:
 		cv::Mat get_current();
-		cv::Mat apply_filter(cv::Mat &img, int filter);
+		void apply_filter(cv::Mat &img, int filter);
 
 	// Private member variables
 	private:

@@ -54,5 +54,7 @@ struct ImageParams
 									qstring_pair("Sharpen", 0),
 									qstring_pair("Vignette", 0),
 									qstring_pair("Blur", 0),
-									qstring_pair("Saturation", 50)};
+									qstring_pair("Saturation", 50),
+									qstring_pair("Hue", 50),
+									qstring_pair("Value", 50)};
 };
