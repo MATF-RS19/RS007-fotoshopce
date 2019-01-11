@@ -147,7 +147,7 @@ void MainWindow::save_image(const std::string& filename)
 {
 	try {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
-		cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
+		m_image_list[m_image_index].m_filename = filename;
 		cv::imwrite(filename, current);
 	} catch (...) {
 		QMessageBox::warning(this, "Warning", "Cannot save file" + QString::fromStdString(filename));
