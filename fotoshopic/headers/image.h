@@ -19,17 +19,6 @@
 /* Forward declarations */
 class MainWindow;
 
-
-/*
-* @brief Enum class representing image type.
-*/
-enum class image_type
-{
-	color,
-	grayscale,
-};
-
-
 /*
 * @brief Class representing an OpenCV image with utility parameters.
 */
@@ -52,7 +41,6 @@ class Image
 	private:
 		cv::Mat m_img;
 		std::string m_filename;
-		image_type m_type;
 		std::vector<ImageParams> m_param_list;
 		unsigned long m_index;
 };

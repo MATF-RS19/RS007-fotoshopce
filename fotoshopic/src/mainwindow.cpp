@@ -68,6 +68,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	// Create filter section
 	m_filter_buttons = create_section("Filters");
+	m_image_type_buttons = create_type_section("Image type");
 
 	for(size_t i = 0; i < m_filter_buttons.size(); ++i)
 	{
@@ -131,13 +132,8 @@ void MainWindow::show_image()
 		cv::Rect myROI(m_current_left, m_current_top, m_current_right - m_current_left, m_current_bottom - m_current_top);
 		cv::Mat croppedImage = current(myROI);
 
-		if (image_type::grayscale == m_image_list[m_image_index].m_type) {
-			cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2GRAY);
-			m_lb_image->setPixmap(QPixmap::fromImage(QImage(croppedImage.data, croppedImage.cols, croppedImage.rows, int(croppedImage.step), QImage::Format_Indexed8)));
-		} else if (image_type::color == m_image_list[m_image_index].m_type) {
-			cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2RGB);
-			m_lb_image->setPixmap(QPixmap::fromImage(QImage(croppedImage.data, croppedImage.cols, croppedImage.rows, int(croppedImage.step), QImage::Format_RGB888)));
-		}
+		cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2RGB);
+		m_lb_image->setPixmap(QPixmap::fromImage(QImage(croppedImage.data, croppedImage.cols, croppedImage.rows, int(croppedImage.step), QImage::Format_RGB888)));
 	} else {
 		m_lb_image->clear();
 	}
@@ -150,12 +146,7 @@ void MainWindow::save_image(const std::string& filename)
 {
 	try {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
-		if (image_type::grayscale == m_img.m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
-		} else if (image_type::color == m_img.m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
-		}
-
+		cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
 		cv::imwrite(filename, current);
 	} catch (...) {
 		QMessageBox::warning(this, "Warning", "Cannot save file" + QString::fromStdString(filename));
@@ -172,7 +163,6 @@ void MainWindow::capture_sliders(const qstring_map<QSlider*> sliders)
 	}
 }
 
-
 /*
 * @brief Set initial slider value and define slider movement trigger.
 */
@@ -182,7 +172,7 @@ void MainWindow::slider_operation(qstring_map<QSlider*> sliders, const QString &
 	sliders[key]->setTracking(false);
 	m_slider_values.front()[key] = value;
 
-	QObject::connect(sliders[key], &QSlider::valueChanged, [this, key](auto &&e) {
+	QObject::connect(sliders[key], &QSlider::valueChanged, [key, sliders, value, this](auto &&e) {
 		if(m_has_image) {
 			ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 			m_image_list[m_image_index].m_param_list.push_back(params);
@@ -195,6 +185,7 @@ void MainWindow::slider_operation(qstring_map<QSlider*> sliders, const QString &
 			delete_after_redo();
 			show_image();
 		} else {
+			sliders.at(key)->setSliderPosition(value);
 			QMessageBox::warning(this, "Warning", "No image to adjust.");
 		}
 	});
@@ -222,6 +213,10 @@ void MainWindow::on_action_Open_triggered()
 		m_slider_values.clear();
 		m_image_index = m_slider_index = 0;
 		cv::Mat current = cv::imread(filename.toStdString());
+
+		for(auto &&e : ImageParams().adjustment_map) {
+			m_sliders[e.first]->setSliderPosition(e.second);
+		}
 
 		Image img{current, filename.toStdString()};
 		m_image_list.push_back(img);
@@ -278,7 +273,7 @@ std::vector<std::pair<QPushButton*, filters>> MainWindow::create_section(QString
 											  {filters::summer, filters::spring, filters::cool},
 											  {filters::hsv, filters::pink, filters::hot}};
 
-	for(size_t i = 0; i < 4; ++i)
+	for(auto &&row : filters)
 	{
 		auto *widget{new QWidget(this)};
 		auto *hbox{new QHBoxLayout};
@@ -286,12 +281,12 @@ std::vector<std::pair<QPushButton*, filters>> MainWindow::create_section(QString
 		widget->setLayout(hbox);
 		vbox->addWidget(widget);
 
-		for(size_t j = 0; j < 3; ++j)
+		for(auto &&col : row)
 		{
 			auto *button{new QPushButton};
 			hbox->addWidget(button);
-			filter_buttons.push_back({button, filters[i][j]});
-			auto b_filter{filters[i][j]};
+			filter_buttons.push_back({button, col});
+			auto b_filter{col};
 			button->setCheckable(true);
 			button->setChecked(false);
 
@@ -318,6 +313,55 @@ std::vector<std::pair<QPushButton*, filters>> MainWindow::create_section(QString
 	section->setContentLayout(*vbox);
 
 	return filter_buttons;
+}
+
+/*
+ * @brief Create drop-down image type section.
+ */
+std::vector<std::pair<QPushButton*, image_type>> MainWindow::create_type_section(QString name)
+{
+	Section *section{new Section(name, 300, this)};
+	m_sections.push_back(section);
+	ui->hlSide->addWidget(section);
+
+	auto *vbox{new QVBoxLayout};
+	vbox->setAlignment(Qt::AlignTop);
+
+	std::vector<std::pair<QPushButton*, image_type>> image_type_buttons;
+	std::vector<std::pair<image_type, QString>> image_types{{image_type::grayscale, QString::fromStdString("Grayscale")},
+															   {image_type::color, QString::fromStdString("Color")}};
+
+	for(auto &&img_type : image_types)
+	{
+		auto *button{new QPushButton};
+		vbox->addWidget(button);
+		image_type_buttons.push_back({button, img_type.first});
+		auto b_type{img_type.first};
+		button->setCheckable(true);
+		button->setChecked(false);
+		button->setToolTip(img_type.second);
+		button->setText(img_type.second);
+
+		QObject::connect(button, &QPushButton::clicked, [b_type, this](auto &&e) {
+			if(m_has_image) {
+				ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
+				for(auto &&e : m_image_type_buttons) {
+					e.first->setChecked(false);
+				}
+				params.img_type = e ? b_type : image_type::color;
+				m_image_list[m_image_index].m_param_list.push_back(params);
+				m_image_list[m_image_index].m_index++;
+				delete_after_redo();
+				show_image();
+			} else {
+				QMessageBox::warning(this, "Warning", "No image to adjust.");
+			}
+		});
+	}
+
+	section->setContentLayout(*vbox);
+
+	return image_type_buttons;
 }
 
 /*
@@ -452,33 +496,6 @@ void MainWindow::on_action_Rotate_right_triggered()
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
     }
-}
-
-
-/*
-* @brief Convert image to RGB.
-*/
-void MainWindow::on_btRGB_triggered()
-{
-	if (m_has_image) {
-		m_image_list[m_image_index].m_type = image_type::color;
-		show_image();
-	} else {
-		QMessageBox::warning(this, "Warning", "Image not loaded");
-	}
-}
-
-/*
-* @brief Convert image to grayscale.
-*/
-void MainWindow::on_btGray_triggered()
-{
-	if (m_has_image) {
-		m_image_list[m_image_index].m_type = image_type::grayscale;
-		show_image();
-	} else {
-		QMessageBox::warning(this, "Warning", "Image not loaded");
-	}
 }
 
 /*
