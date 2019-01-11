@@ -237,7 +237,7 @@ void MainWindow::on_action_Open_triggered()
 }
 
 /*
-* @brief Create one drop-down slider section.
+* @brief Create drop-down slider section.
 */
 qstring_map<QSlider*> MainWindow::create_section(QString name, const std::vector<QString> &contents)
 {
@@ -260,7 +260,7 @@ qstring_map<QSlider*> MainWindow::create_section(QString name, const std::vector
 }
 
 /*
- * @brief Create one drop-down filter section.
+ * @brief Create drop-down filter section.
  */
 std::vector<std::pair<QPushButton*, filters>> MainWindow::create_section(QString name)
 {
@@ -295,10 +295,14 @@ std::vector<std::pair<QPushButton*, filters>> MainWindow::create_section(QString
 			button->setCheckable(true);
 			button->setChecked(false);
 
-			QObject::connect(button, &QPushButton::clicked, [b_filter, this](auto &&e) {
+			QObject::connect(button, &QPushButton::clicked, [button, b_filter, this](auto &&e) {
 				if(m_has_image) {
-					std::cerr << e << std::endl;
 					ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
+					for(auto &&e : m_filter_buttons) {
+						if(e.first->isChecked() && e.first != button) {
+							e.first->setChecked(false);
+						}
+					}
 					params.filter = e ? b_filter : filters::none;
 					m_image_list[m_image_index].m_param_list.push_back(params);
 					m_image_list[m_image_index].m_index++;
@@ -317,7 +321,7 @@ std::vector<std::pair<QPushButton*, filters>> MainWindow::create_section(QString
 }
 
 /*
-* @brief Create one drop-down section with individual color selection.
+* @brief Create drop-down section with individual color selection.
 */
 std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one)
 {
