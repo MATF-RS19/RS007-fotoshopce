@@ -1,8 +1,8 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>icons/crop.jpeg</file>
-	<file>icons/rotate_left.jpeg</file>
-	<file>icons/rotate_right.jpeg</file>
+        <file>icons/crop.png</file>
+        <file>icons/rotate_left.png</file>
+        <file>icons/rotate_right.png</file>
         <file>icons/delete.png</file>
         <file>icons/draw.png</file>
         <file>icons/exit.png</file>
@@ -15,5 +15,19 @@
         <file>icons/undo.png</file>
         <file>icons/zoom.png</file>
         <file>icons/zoom_out.png</file>
+	<file>icons/filters/autumn.png</file>
+	<file>icons/filters/bone.png</file>
+	<file>icons/filters/cool.png</file>
+	<file>icons/filters/hot.png</file>
+	<file>icons/filters/hsv.png</file>
+	<file>icons/filters/jet.png</file>
+	<file>icons/filters/ocean.png</file>
+	<file>icons/filters/pink.png</file>
+	<file>icons/filters/rainbow.png</file>
+	<file>icons/filters/spring.png</file>
+	<file>icons/filters/summer.png</file>
+	<file>icons/filters/winter.png</file>
+	<file>QTDark.stylesheet</file>
     </qresource>
+    
 </RCC>

@@ -83,5 +83,6 @@ CMakeLists.txt.user*
 
 .qmake.stash
 fotoshopce
+.idea
 
 # End of https://www.gitignore.io/api/qt,c++,opencv

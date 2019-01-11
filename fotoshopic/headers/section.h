@@ -18,8 +18,8 @@
 	along with Elypson/qt-collapsible-section. If not, see <http://www.gnu.org/licenses/>.
 */    
 
-#ifndef SECTION_H
-#define SECTION_H
+#pragma once
+
 
 #include <QFrame>
 #include <QGridLayout>
@@ -28,22 +28,37 @@
 #include <QToolButton>
 #include <QWidget>
 
+
+/*
+* @brief Class that implements a collapsable widget Code was taken from GitHub and modified for our use case.
+*/
 class Section : public QWidget {
 	Q_OBJECT
 
-	private:
-
-		QGridLayout* mainLayout;
-		QToolButton* toggleButton;
-		QFrame* headerLine;
-		QParallelAnimationGroup* toggleAnimation;
-		QScrollArea* contentArea;
-		int animationDuration;
-
+	// Public member functions
 	public:
-		explicit Section(const QString & title = "", const int animationDuration = 100, QWidget* parent = nullptr);
+		explicit Section(const QString & title = "", const int duration = 100, QWidget* parent = nullptr);
 
+		inline bool operator==(const Section &other) const { return m_uid == other.m_uid; }
+		inline bool operator!=(const Section &other) const { return !(*this == other); }
+
+		inline bool open() const { return m_open; }
+		inline QToolButton *toggle() { return m_toggle_button; }
+		inline size_t uid() const { return m_uid; }
+
+		void expand();
+		void colapse();
 		void setContentLayout(QLayout & contentLayout);
-};
 
-#endif // SECTION_H
+	// Private member variables
+	private:
+		QGridLayout* m_main_layout;
+		QToolButton* m_toggle_button;
+		QFrame* m_header_line;
+		QParallelAnimationGroup* m_toggle_animation;
+		QScrollArea* m_content_area;
+		int m_duration;
+		bool m_open;
+		size_t m_uid;
+		static size_t uid_assigner;
+};

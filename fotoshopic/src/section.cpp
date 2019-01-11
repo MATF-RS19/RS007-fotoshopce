@@ -18,75 +18,108 @@
     along with Elypson/qt-collapsible-section. If not, see <http://www.gnu.org/licenses/>.
 */    
 
+
 #include <QPropertyAnimation>
 
 #include "headers/section.h"
 
-Section::Section(const QString & title, const int animationDuration, QWidget* parent)
-    : QWidget(parent), animationDuration(animationDuration)
+
+/* Declaring static variables */
+size_t Section::uid_assigner{0};
+
+/*
+* @brief Builds instance of section.
+*/
+Section::Section(const QString & title, const int duration, QWidget* parent)
+	:	QWidget(parent),
+		m_duration(duration),
+		m_open{false},
+		m_uid{uid_assigner}
 {
-    toggleButton = new QToolButton(this);
-    headerLine = new QFrame(this);
-    toggleAnimation = new QParallelAnimationGroup(this);
-    contentArea = new QScrollArea(this);
-    mainLayout = new QGridLayout(this);
+	uid_assigner += 1;
 
-    toggleButton->setStyleSheet("QToolButton {border: none;}");
-    toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    toggleButton->setArrowType(Qt::ArrowType::RightArrow);
-    toggleButton->setText(title);
-    toggleButton->setCheckable(true);
-    toggleButton->setChecked(false);
+	m_toggle_button = new QToolButton(this);
+    m_header_line = new QFrame(this);
+    m_toggle_animation = new QParallelAnimationGroup(this);
+    m_content_area = new QScrollArea(this);
+    m_main_layout = new QGridLayout(this);
 
-    headerLine->setFrameShape(QFrame::HLine);
-    headerLine->setFrameShadow(QFrame::Sunken);
-    headerLine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+	m_toggle_button->setStyleSheet("QToolButton { border: none; }");
+    m_toggle_button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    m_toggle_button->setArrowType(Qt::ArrowType::RightArrow);
+    m_toggle_button->setText(title);
+    m_toggle_button->setCheckable(true);
+    m_toggle_button->setChecked(false);
 
-    contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_header_line->setFrameShape(QFrame::HLine);
+    m_header_line->setFrameShadow(QFrame::Sunken);
+    m_header_line->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
-    // start out collapsed
-    contentArea->setMaximumHeight(0);
-    contentArea->setMinimumHeight(0);
+    m_content_area->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-    // let the entire widget grow and shrink with its content
-    toggleAnimation->addAnimation(new QPropertyAnimation(this, "minimumHeight"));
-    toggleAnimation->addAnimation(new QPropertyAnimation(this, "maximumHeight"));
-    toggleAnimation->addAnimation(new QPropertyAnimation(contentArea, "maximumHeight"));
+    m_content_area->setMaximumHeight(0);
+    m_content_area->setMinimumHeight(0);
 
-    mainLayout->setVerticalSpacing(0);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
+    m_toggle_animation->addAnimation(new QPropertyAnimation(this, "minimumHeight"));
+    m_toggle_animation->addAnimation(new QPropertyAnimation(this, "maximumHeight"));
+    m_toggle_animation->addAnimation(new QPropertyAnimation(m_content_area, "maximumHeight"));
 
-    int row = 0;
-    mainLayout->addWidget(toggleButton, row, 0, 1, 1, Qt::AlignLeft);
-    mainLayout->addWidget(headerLine, row++, 2, 1, 1);
-    mainLayout->addWidget(contentArea, row, 0, 1, 3);
-    setLayout(mainLayout);
+    m_main_layout->setVerticalSpacing(0);
+    m_main_layout->setContentsMargins(0, 0, 0, 0);
 
-    QObject::connect(toggleButton, &QToolButton::clicked, [this](const bool checked)
-    {
-        toggleButton->setArrowType(checked ? Qt::ArrowType::DownArrow : Qt::ArrowType::RightArrow);
-        toggleAnimation->setDirection(checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
-        toggleAnimation->start();
-    });
+	int row{0};
+    m_main_layout->addWidget(m_toggle_button, row, 0, 1, 1, Qt::AlignLeft);
+    m_main_layout->addWidget(m_header_line, row++, 2, 1, 1);
+    m_main_layout->addWidget(m_content_area, row, 0, 1, 3);
+    setLayout(m_main_layout);
 }
 
+/*
+* @brief Sets layout of section (usually a HBox or VBox).
+*/
 void Section::setContentLayout(QLayout & contentLayout)
 {
-    delete contentArea->layout();
-    contentArea->setLayout(&contentLayout);
-    const auto collapsedHeight = sizeHint().height() - contentArea->maximumHeight();
-    auto contentHeight = contentLayout.sizeHint().height();
+    delete m_content_area->layout();
+    m_content_area->setLayout(&contentLayout);
+	auto collapsedHeight{sizeHint().height() - m_content_area->maximumHeight()};
+	auto contentHeight{contentLayout.sizeHint().height()};
 
-    for (int i = 0; i < toggleAnimation->animationCount() - 1; ++i)
+    for (int i = 0; i < m_toggle_animation->animationCount() - 1; ++i)
     {
-        QPropertyAnimation* SectionAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(i));
-        SectionAnimation->setDuration(animationDuration);
+		QPropertyAnimation *SectionAnimation{static_cast<QPropertyAnimation*>(m_toggle_animation->animationAt(i))};
+        SectionAnimation->setDuration(m_duration);
         SectionAnimation->setStartValue(collapsedHeight);
         SectionAnimation->setEndValue(collapsedHeight + contentHeight);
     }
 
-    QPropertyAnimation* contentAnimation = static_cast<QPropertyAnimation *>(toggleAnimation->animationAt(toggleAnimation->animationCount() - 1));
-    contentAnimation->setDuration(animationDuration);
+	QPropertyAnimation *contentAnimation{static_cast<QPropertyAnimation*>(m_toggle_animation->animationAt(m_toggle_animation->animationCount() - 1))};
+    contentAnimation->setDuration(m_duration);
     contentAnimation->setStartValue(0);
     contentAnimation->setEndValue(contentHeight);
+}
+
+/*
+* @brief Colapses section if open.
+*/
+void Section::colapse()
+{
+	if(m_open) {
+		m_toggle_button->setArrowType(Qt::ArrowType::RightArrow);
+		m_toggle_animation->setDirection(QAbstractAnimation::Backward);
+		m_toggle_animation->start();
+		m_open = false;
+	}
+}
+
+/*
+* @brief Expands section if closed.
+*/
+void Section::expand()
+{
+	if(!m_open) {
+		m_toggle_button->setArrowType(Qt::ArrowType::DownArrow);
+		m_toggle_animation->setDirection(QAbstractAnimation::Forward);
+		m_toggle_animation->start();
+		m_open = true;
+	}
 }

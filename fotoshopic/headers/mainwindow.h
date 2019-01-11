@@ -1,5 +1,6 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
+
+#include <vector>
 
 #include <QMainWindow>
 #include <QHBoxLayout>
@@ -17,14 +18,23 @@
 #include <QLineEdit>
 #include <QList>
 #include <QDialogButtonBox>
+#include <QButtonGroup>
+#include <QRadioButton>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "abstract_operation.h"
 #include "image.h"
+#include "image_params.h"
+#include "section.h"
+#include "utils.h"
+#include "mouse_label.h"
 
+//#include "edit_operations.h"
+
+//template <typename T>
+//using qstring_map = std::unordered_map<QString, T>;
 
 namespace Ui { class MainWindow; }
 
@@ -40,8 +50,6 @@ class MainWindow : public QMainWindow
 	private slots:
 		void on_action_ZoomIn_triggered();
 		void on_action_ZoomOut_triggered();
-		void on_btRGB_triggered();
-		void on_btGray_triggered();
 		void on_action_Mirror_triggered();
 		void on_action_Open_triggered();
 		void on_action_Save_triggered();
@@ -54,22 +62,37 @@ class MainWindow : public QMainWindow
         void on_action_Undo_triggered();
         void on_action_Redo_triggered();
 	// Private member functions
-    private:
-		void show_image() const;
+		void on_action_Crop_triggered();
+		void on_label_clicked();
+		void on_label_moved();
+		void on_label_released();
+
+	private:
+		void show_image();
 		void save_image(const std::string& fileName);
-        void push_operation(fs::ops::AbstractOperation *op);
-        void pop_operation();
-        std::vector<QSlider*> create_section(QString name, const std::vector<QString> &contents);
-        std::pair<std::vector<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons);
+		void capture_sliders(const qstring_map<QSlider*> sliders);
+		void slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value = 50);
+		qstring_map<QSlider*> create_section(QString name, const std::vector<QString> &contents);
+		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one = true);
+		std::vector<std::pair<QPushButton*, filters>> create_section(QString name);
+		std::vector<std::pair<QPushButton*, image_type>> create_type_section(QString name);
+
+		void delete_after_redo();
+		void update_edges(const cv::Mat& current);
 	// Private variables
 	private:
 		// Define the image
-		QLabel* m_lb_image;
 		Ui::MainWindow *ui;
-		Image img;
-		std::vector<std::unique_ptr<fs::ops::AbstractOperation>> m_fwd_ops, m_bwd_ops;
+		MouseLabel* m_lb_image;
+		Image m_img;
 		bool m_has_image;
-		std::unordered_map<std::string, int> m{ {"brightness", 50}, {"contrast", 50}, {"saturation", 50} };
+		std::vector<Section*> m_sections;
+		std::vector<Image> m_image_list;
+		qstring_map<QSlider*> m_sliders;
+		unsigned long m_image_index, m_slider_index;
+		std::vector<qstring_map<int>> m_slider_values;
+		std::vector<std::pair<QPushButton*, filters>> m_filter_buttons;
+		std::vector<std::pair<QPushButton*, image_type>> m_image_type_buttons;
+		std::vector<std::pair<QString, std::string>> m_filter_filenames;
 };
 
-#endif // MAINWINDOW_H
