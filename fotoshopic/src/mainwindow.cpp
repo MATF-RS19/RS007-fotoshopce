@@ -291,6 +291,23 @@ std::vector<std::pair<QPushButton*, filters>> MainWindow::create_section(QString
 			auto *button{new QPushButton};
 			hbox->addWidget(button);
 			filter_buttons.push_back({button, filters[i][j]});
+			auto b_filter{filters[i][j]};
+			button->setCheckable(true);
+			button->setChecked(false);
+
+			QObject::connect(button, &QPushButton::clicked, [b_filter, this](auto &&e) {
+				if(m_has_image) {
+					std::cerr << e << std::endl;
+					ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
+					params.filter = e ? b_filter : filters::none;
+					m_image_list[m_image_index].m_param_list.push_back(params);
+					m_image_list[m_image_index].m_index++;
+					delete_after_redo();
+					show_image();
+				} else {
+					QMessageBox::warning(this, "Warning", "No image to adjust.");
+				}
+			});
 		}
 	}
 
