@@ -146,7 +146,7 @@ void MainWindow::show_image()
 /*
 * @brief Save image according to its type (either RGB or grayscale).
 */
-void MainWindow::save_image(const std::string& fileName)
+void MainWindow::save_image(const std::string& filename)
 {
 	try {
 		cv::Mat current{m_image_list[m_image_index].get_current()};
@@ -156,9 +156,9 @@ void MainWindow::save_image(const std::string& fileName)
 			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
 		}
 
-		cv::imwrite(fileName, current);
+		cv::imwrite(filename, current);
 	} catch (...) {
-		QMessageBox::warning(this, "Warning", "Cannot save file" + QString::fromStdString(fileName));
+		QMessageBox::warning(this, "Warning", "Cannot save file" + QString::fromStdString(filename));
 	}
 }
 
@@ -221,9 +221,9 @@ void MainWindow::on_action_Open_triggered()
 		m_image_list.clear();
 		m_slider_values.clear();
 		m_image_index = m_slider_index = 0;
-		cv::Mat current = cv::imread(fileName.toStdString());
+		cv::Mat current = cv::imread(filename.toStdString());
 
-		Image img{current, fileName.toStdString()};
+		Image img{current, filename.toStdString()};
 		m_image_list.push_back(img);
         m_has_image = true;
 
