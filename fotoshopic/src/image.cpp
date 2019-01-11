@@ -8,7 +8,6 @@
 Image::Image(const cv::Mat& img, std::string filename)
 	:	m_img(img),
 		m_filename(std::move(filename)),
-		m_type{image_type::color},
 		m_param_list(1),
 		m_index{0}
 {}
@@ -172,6 +171,14 @@ cv::Mat Image::get_current()
 			break;
 	}
 
+	switch (m_param_list[m_index].img_type) {
+		case image_type::grayscale:
+			cv::cvtColor(new_image, new_image, cv::COLOR_RGB2GRAY);
+			break;
+		case image_type::color:
+			break;
+	}
+
 	// Set the hue value
 	double hue_v{hue / 50.0};
 
@@ -181,7 +188,7 @@ cv::Mat Image::get_current()
 	// Set the value value
 	double value_v{value / 50.0};
 
-	// Adjust image color settings if needed
+	// Adjust image color settings needed
 	if(hue_v != 1.0 || saturation_v != 1.0 || value_v != 1.0) {
 		cv::cvtColor(new_image, new_image, cv::COLOR_RGB2HSV);
 		cv::multiply(new_image, cv::Scalar(hue_v, saturation_v, value_v), new_image);

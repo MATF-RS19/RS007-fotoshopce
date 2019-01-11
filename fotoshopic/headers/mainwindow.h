@@ -50,8 +50,6 @@ class MainWindow : public QMainWindow
 	private slots:
 		void on_action_ZoomIn_triggered();
 		void on_action_ZoomOut_triggered();
-		void on_btRGB_triggered();
-		void on_btGray_triggered();
 		void on_action_Mirror_triggered();
 		void on_action_Open_triggered();
 		void on_action_Save_triggered();
@@ -77,6 +75,8 @@ class MainWindow : public QMainWindow
 		qstring_map<QSlider*> create_section(QString name, const std::vector<QString> &contents);
 		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one = true);
 		std::vector<std::pair<QPushButton*, filters>> create_section(QString name);
+		std::vector<std::pair<QPushButton*, image_type>> create_type_section(QString name);
+
 		void delete_after_redo();
 		void update_edges(const cv::Mat& current);
 	// Private variables
@@ -92,6 +92,7 @@ class MainWindow : public QMainWindow
 		unsigned long m_image_index, m_slider_index;
 		std::vector<qstring_map<int>> m_slider_values;
 		std::vector<std::pair<QPushButton*, filters>> m_filter_buttons;
+		std::vector<std::pair<QPushButton*, image_type>> m_image_type_buttons;
 		std::vector<std::pair<QString, std::string>> m_filter_filenames;
 };
 

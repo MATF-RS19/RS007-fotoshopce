@@ -40,6 +40,14 @@ enum class filters
 	hot,
 };
 
+/*
+* @brief Enum class representing image type.
+*/
+enum class image_type
+{
+	color,
+	grayscale,
+};
 
 /*
 * @brief Structure that represents image parameters.
@@ -52,6 +60,7 @@ struct ImageParams
 	int m_current_bottom{-1};
 	int m_current_left{-1};
 	int m_current_right{-1};
+	image_type img_type{image_type::color};
 	// TODO: Remove hardcoded values.
 	qstring_map<int> adjustment_map{qstring_pair("Contrast", 50),
 									qstring_pair("Brightness", 50),
