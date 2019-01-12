@@ -37,19 +37,19 @@ namespace rs::utils
 	/*
 	* @brief Undo an entry from history.
 	*/
-	image image_history::undo()
+	std::pair<image, image_parameters> image_history::undo()
 	{
 		m_position = std::max(0, m_position - 1);
-		return image::set_parameters(m_entries[m_position].first, m_entries[m_position].second);
+		return {image::set_parameters(m_entries[m_position].first, m_entries[m_position].second), m_entries[m_position].second};
 	}
 
 	/*
 	* @brief Redo an entry from history.
 	*/
-	image image_history::redo()
+	std::pair<image, image_parameters> image_history::redo()
 	{
 		m_position = std::min(int(m_entries.size() - 1), m_position + 1);
-		return image::set_parameters(m_entries[m_position].first, m_entries[m_position].second);
+		return {image::set_parameters(m_entries[m_position].first, m_entries[m_position].second), m_entries[m_position].second};
 	}
 
 } // namespace rs::utils

@@ -14,9 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
 	:	QMainWindow(parent),
 		ui{new Ui::MainWindow},
 		m_lb_image{new QLabel},
-		m_has_image{false},
-		m_slider_index{0},
-		m_slider_values(1)
+		m_has_image{false}
 {
 	ui->setupUi(this);
 
@@ -132,19 +130,13 @@ void MainWindow::slider_operation(QSlider *slider, const QString &name, int valu
 {
 	slider->setSliderPosition(value);
 	slider->setTracking(false);
-	m_slider_values.front()[name] = value;
 
 	QObject::connect(slider, &QSlider::valueChanged, [name, this](auto &&e) {
 		if(m_has_image) {
 			auto img{m_history.current_template()};
 			auto parameters{m_history.current_parameters()};
-
-			m_slider_values.push_back(parameters.adjustment_map);
-			m_slider_index++;
-
 			parameters.adjustment_map[name] = e;
 			m_history.add_entry(img, parameters);
-
 			show_image();
 		} else {
 			QMessageBox::warning(this, "Warning", "No image to adjust.");
@@ -192,9 +184,6 @@ void MainWindow::on_action_Open_triggered()
 	m_filename = filename.toStdString();
 
 	try {
-		m_slider_values.clear();
-		m_slider_index = 0;
-
 		image img(cv::imread(filename.toStdString()));
 		m_history.set_initial(img);
         m_has_image = true;
@@ -321,13 +310,12 @@ void MainWindow::on_btGray_triggered() {}
 /*
 * @brief Delete current image.
 */
+// TODO: Make this undoable
 void MainWindow::on_action_Delete_triggered()
 {
 	if (m_has_image) {
 		QMessageBox::StandardButton reply{QMessageBox::question(this, "Warning", "Are you sure you want to delete current image?", QMessageBox::Yes | QMessageBox::No)};
 		if (reply == QMessageBox::Yes) {
-			m_slider_values.clear();
-			m_slider_index = 0;
 			m_has_image = false;
 			show_image();
 		}
@@ -432,14 +420,10 @@ void MainWindow::on_action_Exit_triggered()
 */
 void MainWindow::on_action_Undo_triggered()
 {
-	if (m_has_image && m_history.undoable()) {
-		m_history.undo();
-
-		if(m_slider_index) {
-			m_slider_index--;
-			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
-				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
-			}
+	if (m_has_image) {
+		auto values{m_history.undo().second};
+		for(auto &&e : values.adjustment_map) {
+			m_sliders[e.first]->setSliderPosition(e.second);
 		}
 
 		show_image();
@@ -453,14 +437,10 @@ void MainWindow::on_action_Undo_triggered()
 */
 void MainWindow::on_action_Redo_triggered()
 {
-	if (m_has_image && m_history.redoable()) {
-		m_history.redo();
-
-		if(m_slider_index < m_slider_values.size() - 1) {
-			m_slider_index++;
-			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
-				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
-			}
+	if (m_has_image) {
+		auto values{m_history.redo().second};
+		for(auto &&e : values.adjustment_map) {
+			m_sliders[e.first]->setSliderPosition(e.second);
 		}
 
 		show_image();

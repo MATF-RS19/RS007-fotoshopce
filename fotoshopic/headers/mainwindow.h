@@ -71,6 +71,7 @@ class MainWindow : public QMainWindow
 		void save_image(const std::string& fileName);
 		void slider_operation(QSlider *slider, const QString &name, int value = 50);
 		void create_section(const QString &name, const std::vector<std::pair<QString, int>> &contents);
+		void sync_sections();
 
 	/* Private variables */
 	private:
@@ -81,8 +82,5 @@ class MainWindow : public QMainWindow
 		std::vector<Section*> m_sections;
 		qstring_map<QSlider*> m_sliders;
 		std::string m_filename;
-		size_t m_slider_index;
-		std::vector<qstring_map<int>> m_slider_values;
-		void sync_sections();
 };
 
