@@ -62,15 +62,14 @@ class MainWindow : public QMainWindow
 		void on_action_Rotate_right_triggered();
         void on_action_Undo_triggered();
         void on_action_Redo_triggered();
-	// Private member functions
 		void on_action_Crop_triggered();
-		void on_label_clicked();
 		void on_label_moved();
-		void on_label_released();
 
 	protected:
+		// Overrides resizing of window callback
 		void resizeEvent(QResizeEvent* event) override;
 
+	// Private member functions
 	private:
 		void show_image();
 		void save_image(const std::string& fileName);
@@ -80,8 +79,9 @@ class MainWindow : public QMainWindow
 		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one = true);
 		std::vector<std::pair<QPushButton*, filters>> create_section(QString name);
 		std::vector<std::pair<QPushButton*, image_type>> create_type_section(QString name);
-
+		// Makes redo impossible after operation
 		void delete_after_redo();
+		// Fixes shown part of image when zoomed
 		void update_edges_and_size(const cv::Mat& current);
 	// Private variables
 	private:

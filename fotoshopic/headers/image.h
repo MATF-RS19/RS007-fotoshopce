@@ -35,6 +35,7 @@ class Image
 	// Private member functions
 	private:
 		cv::Mat get_current();
+		void get_orientation(cv::Mat& new_image);
 		void apply_filter(cv::Mat &img, int filter);
 
 	// Private member variables

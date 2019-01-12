@@ -24,15 +24,10 @@ void Image::apply_filter(cv::Mat &img, int filter)
 	cv::applyColorMap(img, img, filter);
 }
 
-// TODO: Refactor function [@stefanpantic]
-cv::Mat Image::get_current()
-{
-	cv::Mat new_image;
-	m_img.copyTo(new_image);
-
+void Image::get_orientation(cv::Mat& new_image) {
+	// Gets corner orientation
 	auto tl{m_param_list[m_index].corners[0]}, tr{m_param_list[m_index].corners[1]}, bl{m_param_list[m_index].corners[2]}, br{m_param_list[m_index].corners[3]};
 
-	// TODO: Move ifs to function [@milanilic332]
 	if (tl == image_corners::top_right && tr == image_corners::bottom_right &&
 		bl == image_corners::top_left && br == image_corners::bottom_left) {
 			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
@@ -71,11 +66,21 @@ cv::Mat Image::get_current()
 		bl == image_corners::bottom_right && br == image_corners::bottom_left) {
 			cv::flip(new_image, new_image, 1);
 	}
+}
+
+// TODO: Refactor function [@stefanpantic]
+cv::Mat Image::get_current()
+{
+	cv::Mat new_image;
+	m_img.copyTo(new_image);
+
+	// Rotates and flips image into correct orientation
+	get_orientation(new_image);
+
+	// Resizes image into correct size
 	int width{m_param_list[m_index].size.first};
 	int height{m_param_list[m_index].size.second};
-
 	cv::resize(new_image, new_image, cv::Size(width, height));
-
 
 	int brightness{m_param_list[m_index].adjustment_map[QString::fromStdString("Brightness")]};
 	int contrast{m_param_list[m_index].adjustment_map[QString::fromStdString("Contrast")]};

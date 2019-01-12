@@ -57,6 +57,7 @@ struct ImageParams
 {
 	std::array<image_corners, 4> corners{image_corners::top_left, image_corners::top_right, image_corners::bottom_left, image_corners::bottom_right};
 	filters filter{filters::none};
+	// Used for croping if image is zoomed
 	int m_current_top{-1};
 	int m_current_bottom{-1};
 	int m_current_left{-1};

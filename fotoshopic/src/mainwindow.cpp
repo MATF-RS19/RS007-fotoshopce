@@ -33,15 +33,11 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	ui->setupUi(this);
 
-	connect(m_lb_image, SIGNAL(clicked()), this, SLOT(on_label_clicked()));
+	// Connects mouse move event on label to slot here
 	connect(m_lb_image, SIGNAL(moved()), this, SLOT(on_label_moved()));
-	connect(m_lb_image, SIGNAL(released()), this, SLOT(on_label_released()));
 
-    // Disable spacing
-	// TODO: Adjust sidebar and image label size [@milanilic332]
     auto *hlMain{new QHBoxLayout};
 	ui->mainContainer->setLayout(hlMain);
-    hlMain->setStretchFactor(hlMain, 30);
 
 	// Set side pannel alignment
 	ui->hlSide->setAlignment(Qt::AlignTop);
@@ -119,6 +115,9 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
+/*
+* @brief Updates params when window is resized.
+*/
 void MainWindow::resizeEvent(QResizeEvent*) {
 	if (m_has_image) {
 		cv::Mat current = m_image_list[m_image_index].get_current();
@@ -126,6 +125,7 @@ void MainWindow::resizeEvent(QResizeEvent*) {
 		show_image();
 	}
 }
+
 /*
 * @brief Display image according to its type (either RGB or grayscale).
 */
@@ -231,10 +231,10 @@ void MainWindow::on_action_Open_triggered()
 
 		update_edges_and_size(current);
 
+		// Shows name of file in status bar
 		ui->statusBar->showMessage(filename);
 
 		show_image();
-		setWindowTitle(filename);
 	} catch (...) {
 		QMessageBox::warning(this, "Warning", "Cannot open file" + filename);
 	}
@@ -398,10 +398,8 @@ void MainWindow::on_action_SaveAs_triggered()
 	}
 }
 
-// TODO: Fix zooming, implement dragging while zoomed [@milanilic332]
-// TODO: Check if image is too large or small
 /*
-* @brief TODO: description
+* @brief Zoom in image
 */
 void MainWindow::on_action_ZoomIn_triggered()
 {
@@ -409,6 +407,8 @@ void MainWindow::on_action_ZoomIn_triggered()
 		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		params.size.first = int(params.size.first*1.1);
 		params.size.second = int(params.size.second*1.1);
+
+		// Updates image history
 		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
 			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
 			m_image_list[m_image_index].m_index++;
@@ -424,9 +424,9 @@ void MainWindow::on_action_ZoomIn_triggered()
 	}
 }
 
-// TODO: Fix zooming, implement dragging while zoomed [@milanilic332]
+
 /*
-* @brief TODO: description
+* @brief Zoom out image
 */
 void MainWindow::on_action_ZoomOut_triggered()
 {
@@ -434,6 +434,8 @@ void MainWindow::on_action_ZoomOut_triggered()
 		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		params.size.first = int(params.size.first*0.9);
 		params.size.second = int(params.size.second*0.9);
+
+		// Updates image history
 		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
 			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
 			m_image_list[m_image_index].m_index++;
@@ -458,6 +460,8 @@ void MainWindow::on_action_Mirror_triggered()
 		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		std::swap(params.corners[0], params.corners[1]);
 		std::swap(params.corners[2], params.corners[3]);
+
+		// Updates image history
 		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
 			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
 			m_image_list[m_image_index].m_index++;
@@ -486,6 +490,8 @@ void MainWindow::on_action_Rotate_left_triggered()
 		params.corners[2] = a;
 		params.corners[3] = c;
 		std::swap(params.size.first, params.size.second);
+
+		// Updates image history
 		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
 			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
 			m_image_list[m_image_index].m_index++;
@@ -514,6 +520,8 @@ void MainWindow::on_action_Rotate_right_triggered()
 		params.corners[2] = d;
 		params.corners[3] = b;
 		std::swap(params.size.first, params.size.second);
+
+		// Updates image history
 		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
 			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
 			m_image_list[m_image_index].m_index++;
@@ -590,19 +598,19 @@ void MainWindow::on_action_Resize_triggered()
 		QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
 		QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
 
-		// TODO: Check if its int, maybe leaking memory idk
 		if (dialog.exec() == QDialog::Accepted) {
 			cv::Mat current{m_image_list[m_image_index].get_current()};
 			cv::resize(current, current, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
 
 			Image img{current, m_image_list[m_image_index].m_filename};
+
+			// Updates image history
 			if (m_image_list.size() == m_image_index + 1) {
 				m_image_list.push_back(std::move(img));
 				m_image_list[m_image_index].m_index++;
 			} else {
 				m_image_list[++m_image_index] = std::move(img);
 			}
-
 			update_edges_and_size(current);
 			delete_after_redo();
 			show_image();
@@ -640,12 +648,12 @@ void MainWindow::on_action_Undo_triggered()
 		}
 
 		// TODO: This crashes
-		if(m_slider_index) {
-			m_slider_index--;
-			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
-				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
-			}
-		}
+//		if(m_slider_index) {
+//			m_slider_index--;
+//			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
+//				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
+//			}
+//		}
 
 		show_image();
 	} else {
@@ -666,13 +674,14 @@ void MainWindow::on_action_Redo_triggered()
 		} else {
 			m_image_list[m_image_index].m_index++;
 		}
+
 		// TODO: This crashes
-		if(m_slider_index < m_slider_values.size() - 1) {
-			m_slider_index++;
-			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
-				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
-			}
-		}
+//		if(m_slider_index < m_slider_values.size() - 1) {
+//			m_slider_index++;
+//			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
+//				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
+//			}
+//		}
 
 		show_image();
 	} else {
@@ -698,10 +707,9 @@ void MainWindow::delete_after_redo() {
 	}
 }
 
-void MainWindow::on_label_clicked() {
-
-}
-
+/*
+* @brief Enables dragging image when its bigger than label
+*/
 void MainWindow::on_label_moved() {
 	if (m_has_image) {
 		auto diff = m_lb_image->get_diff();
@@ -722,14 +730,17 @@ void MainWindow::on_label_moved() {
 	}
 }
 
-void MainWindow::on_label_released() {
-
-}
-
+/*
+* @brief Updates params
+*/
 void MainWindow::update_edges_and_size(const cv::Mat& current) {
 	auto current_width{m_lb_image->size().width()};
 	auto current_height{m_lb_image->size().height()};
+
+	// Updates size of image (Zoom in, Zoom out)
 	m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].size = {current.cols, current.rows};
+
+	// Updates params for slice thats shown on label
 	if (current.cols > current_width) {
 		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left = (current.cols - current_width)/2;
 		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right = current.cols - (current.cols - current_width)/2;
