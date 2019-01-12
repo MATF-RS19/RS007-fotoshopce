@@ -20,6 +20,7 @@
 #include <QDialogButtonBox>
 #include <QButtonGroup>
 #include <QRadioButton>
+#include <QResizeEvent>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -67,6 +68,9 @@ class MainWindow : public QMainWindow
 		void on_label_moved();
 		void on_label_released();
 
+	protected:
+		void resizeEvent(QResizeEvent* event) override;
+
 	private:
 		void show_image();
 		void save_image(const std::string& fileName);
@@ -78,7 +82,7 @@ class MainWindow : public QMainWindow
 		std::vector<std::pair<QPushButton*, image_type>> create_type_section(QString name);
 
 		void delete_after_redo();
-		void update_edges(const cv::Mat& current);
+		void update_edges_and_size(const cv::Mat& current);
 	// Private variables
 	private:
 		// Define the image

@@ -119,6 +119,13 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
+void MainWindow::resizeEvent(QResizeEvent*) {
+	if (m_has_image) {
+		cv::Mat current = m_image_list[m_image_index].get_current();
+		update_edges_and_size(current);
+		show_image();
+	}
+}
 /*
 * @brief Display image according to its type (either RGB or grayscale).
 */
@@ -132,7 +139,6 @@ void MainWindow::show_image()
 					   m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right - m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left,
 					   m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom - m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top);
 		cv::Mat croppedImage = current(myROI);
-
 		cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2RGB);
 		m_lb_image->setPixmap(QPixmap::fromImage(QImage(croppedImage.data, croppedImage.cols, croppedImage.rows, int(croppedImage.step), QImage::Format_RGB888)));
 	} else {
@@ -223,7 +229,7 @@ void MainWindow::on_action_Open_triggered()
 		m_image_list.push_back(img);
         m_has_image = true;
 
-		update_edges(current);
+		update_edges_and_size(current);
 
 		ui->statusBar->showMessage(filename);
 
@@ -400,12 +406,13 @@ void MainWindow::on_action_SaveAs_triggered()
 void MainWindow::on_action_ZoomIn_triggered()
 {
 	if (m_has_image) {
+		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
+		params.size.first = int(params.size.first*1.1);
+		params.size.second = int(params.size.second*1.1);
+		m_image_list[m_image_index].m_param_list.push_back(params);
+		m_image_list[m_image_index].m_index++;
 		cv::Mat current{m_image_list[m_image_index].get_current()};
-		cv::resize(current, current, cv::Size(), 1.1, 1.1);
-		Image img{current, m_image_list[m_image_index].m_filename};
-		m_image_list.push_back(img);
-		m_image_index++;
-		update_edges(current);
+		update_edges_and_size(current);
 		delete_after_redo();
 		show_image();
 	} else {
@@ -420,12 +427,13 @@ void MainWindow::on_action_ZoomIn_triggered()
 void MainWindow::on_action_ZoomOut_triggered()
 {
 	if (m_has_image) {
+		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
+		params.size.first = int(params.size.first*0.9);
+		params.size.second = int(params.size.second*0.9);
+		m_image_list[m_image_index].m_param_list.push_back(params);
+		m_image_list[m_image_index].m_index++;
 		cv::Mat current{m_image_list[m_image_index].get_current()};
-		cv::resize(current, current, cv::Size(), 0.9, 0.9);
-		Image img{current, m_image_list[m_image_index].m_filename};
-		m_image_list.push_back(img);
-		m_image_index++;
-		update_edges(current);
+		update_edges_and_size(current);
 		delete_after_redo();
 		show_image();
 	} else {
@@ -445,7 +453,7 @@ void MainWindow::on_action_Mirror_triggered()
 		m_image_list[m_image_index].m_param_list.push_back(params);
 		m_image_list[m_image_index].m_index++;
 		cv::Mat current{m_image_list[m_image_index].get_current()};
-		update_edges(current);
+		update_edges_and_size(current);
 		delete_after_redo();
 		show_image();
 	} else {
@@ -468,7 +476,7 @@ void MainWindow::on_action_Rotate_left_triggered()
 		m_image_list[m_image_index].m_param_list.push_back(params);
 		m_image_list[m_image_index].m_index++;
 		cv::Mat current = m_image_list[m_image_index].get_current();
-		update_edges(current);
+		update_edges_and_size(current);
 		delete_after_redo();
 		show_image();
     } else {
@@ -491,7 +499,7 @@ void MainWindow::on_action_Rotate_right_triggered()
 		m_image_list[m_image_index].m_param_list.push_back(params);
 		m_image_list[m_image_index].m_index++;
 		cv::Mat current = m_image_list[m_image_index].get_current();
-		update_edges(current);
+		update_edges_and_size(current);
 		delete_after_redo();
 		show_image();
     } else {
@@ -565,12 +573,11 @@ void MainWindow::on_action_Resize_triggered()
 			cv::Mat current{m_image_list[m_image_index].get_current()};
 			cv::resize(current, current, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
 
-			update_edges(current);
-
 			Image img{current, m_image_list[m_image_index].m_filename};
 			m_image_list.push_back(img);
 			m_image_index++;
 
+			update_edges_and_size(current);
 			delete_after_redo();
 			show_image();
 		}
@@ -692,9 +699,10 @@ void MainWindow::on_label_released() {
 
 }
 
-void MainWindow::update_edges(const cv::Mat& current) {
+void MainWindow::update_edges_and_size(const cv::Mat& current) {
 	auto current_width{m_lb_image->size().width()};
 	auto current_height{m_lb_image->size().height()};
+	m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].size = {current.cols, current.rows};
 	if (current.cols > current_width) {
 		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left = (current.cols - current_width)/2;
 		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right = current.cols - (current.cols - current_width)/2;

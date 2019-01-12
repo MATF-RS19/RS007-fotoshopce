@@ -71,6 +71,11 @@ cv::Mat Image::get_current()
 		bl == image_corners::bottom_right && br == image_corners::bottom_left) {
 			cv::flip(new_image, new_image, 1);
 	}
+	int width{m_param_list[m_index].size.first};
+	int height{m_param_list[m_index].size.second};
+
+	cv::resize(new_image, new_image, cv::Size(width, height));
+
 
 	int brightness{m_param_list[m_index].adjustment_map[QString::fromStdString("Brightness")]};
 	int contrast{m_param_list[m_index].adjustment_map[QString::fromStdString("Contrast")]};
