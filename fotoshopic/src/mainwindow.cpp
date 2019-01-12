@@ -30,27 +30,11 @@ MainWindow::MainWindow(QWidget *parent)
 	// Set side pannel alignment
 	ui->hlSide->setAlignment(Qt::AlignTop);
 
-	// Create basic photo adjustment sliders
-	auto basic_sliders{create_section("Basic settings", {"Brightness", "Contrast", "Saturation"})};
-	capture_sliders(basic_sliders);
-	slider_operation(basic_sliders, "Brightness");
-	slider_operation(basic_sliders, "Contrast");
-	slider_operation(basic_sliders, "Saturation");
-
-	// Create advanced photo adjustment sliders
-	auto advanced_sliders{create_section("Advanced settings", {"Sharpen", "Vignette", "Blur"})};
-	capture_sliders(advanced_sliders);
-	slider_operation(advanced_sliders, "Sharpen", 0);
-	slider_operation(advanced_sliders, "Vignette", 0);
-	slider_operation(advanced_sliders, "Blur", 0);
-
-	// TODO: Add color selection [@dijana-z]
-	// Create individual color photo adjustment sliders
-    auto color_individual_sliders{create_section("Individual color settings", {"Hue", "Saturation", "Luminance"}, 3)};
-	capture_sliders(color_individual_sliders.first);
-
-	// Create filter section
-	auto filter_section{create_section("Filters", {}, 4, false)};
+	// Create photo adjustment sliders
+	create_section("Basic settings", {{"Brightness", 50}, {"Contrast", 50}, {"Saturation", 50}});
+	create_section("Advanced settings", {{"Sharpen", 0}, {"Vignette", 0}, {"Blur", 0}});
+	create_section("Individual color settings", {{"Hue", 50}, {"Saturation", 50}, {"Luminance", 50}});
+	sync_sections();
 
 	// Setting Widget params
 	m_lb_image->setMinimumSize(600, 600);
@@ -63,29 +47,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 	// Add image to main widget
     hlMain->addWidget(m_lb_image);
-
-	// Make only one section open at any given moment
-	for(auto *section : m_sections)
-	{
-		QObject::connect(section->toggle(), &QToolButton::clicked, [section, this](auto &&clicked) {
-			static_cast<void>(clicked);
-
-			if(!section->open()) {
-				for(auto *e : m_sections)
-				{
-					if(*e != *section) {
-						e->colapse();
-					}
-				}
-			}
-
-			if(!section->open()) {
-				section->expand();
-			} else {
-				section->colapse();
-			}
-		});
-	}
 }
 
 /*
@@ -137,40 +98,80 @@ void MainWindow::save_image(const std::string& fileName)
 }
 
 /*
-* @brief Save passed sliders into map.
+* @brief Make only one section open at any given time.
 */
-void MainWindow::capture_sliders(const qstring_map<QSlider*> sliders)
+void MainWindow::sync_sections()
 {
-	for(auto &&slider_pair : sliders) {
-		m_sliders.emplace(slider_pair);
+	for(auto *section : m_sections)
+	{
+		QObject::connect(section->toggle(), &QToolButton::clicked, [section, this](auto &&clicked) {
+			static_cast<void>(clicked);
+
+			if(!section->open()) {
+				for(auto *e : m_sections)
+				{
+					if(*e != *section) {
+						e->colapse();
+					}
+				}
+			}
+
+			if(!section->open()) {
+				section->expand();
+			} else {
+				section->colapse();
+			}
+		});
 	}
 }
-
 
 /*
 * @brief Set initial slider value and define slider movement trigger.
 */
-void MainWindow::slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value)
+void MainWindow::slider_operation(QSlider *slider, const QString &name, int value)
 {
-	sliders[key]->setSliderPosition(value);
-	sliders[key]->setTracking(false);
-	m_slider_values.front()[key] = value;
+	slider->setSliderPosition(value);
+	slider->setTracking(false);
+	m_slider_values.front()[name] = value;
 
-	QObject::connect(sliders[key], &QSlider::valueChanged, [this, key](auto &&e) {
+	QObject::connect(slider, &QSlider::valueChanged, [name, this](auto &&e) {
 		if(m_has_image) {
 			auto img{m_history.current_template()};
 			auto parameters{m_history.current_parameters()};
-			parameters.adjustment_map[key] = e;
-			m_history.add_entry(img, parameters);
 
 			m_slider_values.push_back(parameters.adjustment_map);
 			m_slider_index++;
+
+			parameters.adjustment_map[name] = e;
+			m_history.add_entry(img, parameters);
 
 			show_image();
 		} else {
 			QMessageBox::warning(this, "Warning", "No image to adjust.");
 		}
 	});
+}
+
+/*
+* @brief Create one drop-down slider section.
+*/
+void MainWindow::create_section(const QString &name, const std::vector<std::pair<QString, int>> &contents)
+{
+	auto *section{new Section(name, 300, this)};
+	m_sections.push_back(section);
+	ui->hlSide->addWidget(section);
+
+	auto *vbox{new QVBoxLayout()};
+
+	for(auto &&e : contents)
+	{
+		vbox->addWidget(new QLabel(e.first, section));
+		m_sliders[e.first] = new QSlider(Qt::Horizontal, section);
+		slider_operation(m_sliders[e.first], e.first, e.second);
+		vbox->addWidget(m_sliders[e.first]);
+	}
+
+	section->setContentLayout(*vbox);
 }
 
 /*
@@ -206,72 +207,6 @@ void MainWindow::on_action_Open_triggered()
 }
 
 /*
-* @brief Create one drop-down slider section.
-*/
-qstring_map<QSlider*> MainWindow::create_section(QString name, const std::vector<QString> &contents)
-{
-    Section *section{new Section(name, 300, this)};
-	m_sections.push_back(section);
-	ui->hlSide->addWidget(section);
-
-    auto *vbox{new QVBoxLayout()};
-	qstring_map<QSlider*> sliders;
-
-	for(auto &&e : contents)
-	{
-        vbox->addWidget(new QLabel(e, section));
-		sliders[e] = new QSlider(Qt::Horizontal, section);
-		vbox->addWidget(sliders[e]);
-	}
-
-    section->setContentLayout(*vbox);
-    return sliders;
-}
-
-/*
-* @brief Create one drop-down section with individual color selection.
-*/
-std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one)
-{
-    Section *section{new Section(name, 300, this)};
-	m_sections.push_back(section);
-    ui->hlSide->addWidget(section);
-
-    auto *rbuttons{new QWidget(this)};
-
-    auto *hbox{new QHBoxLayout};
-    hbox->setAlignment(Qt::AlignCenter);
-    auto *toggle_group{new QButtonGroup(hbox)};
-
-    for(int i = 0; i < buttons; ++i)
-    {
-        auto *rbutton{new QRadioButton};
-        hbox->addWidget(rbutton);
-        toggle_group->addButton(rbutton);
-    }
-
-    rbuttons->setLayout(hbox);
-
-    auto *vbox{new QVBoxLayout()};
-	qstring_map<QSlider*> sliders;
-    vbox->addWidget(rbuttons);
-
-    for(auto &&e : contents)
-    {
-        vbox->addWidget(new QLabel(e, section));
-		sliders[e] = new QSlider(Qt::Horizontal, section);
-		vbox->addWidget(sliders[e]);
-    }
-
-	if(buttons && select_one) {
-		toggle_group->buttons()[0]->setChecked(true);
-	}
-
-    section->setContentLayout(*vbox);
-    return {sliders, toggle_group};
-}
-
-/*
 * @brief Slot for Save signal.
 */
 void MainWindow::on_action_Save_triggered()
@@ -297,10 +232,6 @@ void MainWindow::on_action_SaveAs_triggered()
 }
 
 // TODO: Fix zooming, implement dragging while zoomed [@milanilic332]
-// TODO: Check if image is too large or small
-/*
-* @brief TODO: description
-*/
 void MainWindow::on_action_ZoomIn_triggered()
 {
 	if (m_has_image) {
@@ -317,9 +248,6 @@ void MainWindow::on_action_ZoomIn_triggered()
 }
 
 // TODO: Fix zooming, implement dragging while zoomed [@milanilic332]
-/*
-* @brief TODO: description
-*/
 void MainWindow::on_action_ZoomOut_triggered()
 {
 	if (m_has_image) {
@@ -380,7 +308,6 @@ void MainWindow::on_action_Rotate_right_triggered()
     }
 }
 
-
 /*
 * @brief Convert image to RGB.
 */
@@ -409,6 +336,7 @@ void MainWindow::on_action_Delete_triggered()
 	}
 }
 
+// TODO: Fix this
 void MainWindow::on_action_Crop_triggered()
 {
 //	if (m_has_image) {
@@ -454,26 +382,25 @@ void MainWindow::on_action_Resize_triggered()
 	if (m_has_image) {
 		QDialog dialog(this);
 		QFormLayout form(&dialog);
-
-		form.addRow(new QLabel("Choose width and height"));
+		form.addRow(new QLabel("Choose width and height."));
 
 		QList<QLineEdit*> fields;
 
-		QLineEdit *lineEdit = new QLineEdit(&dialog);
-		QString label = QString("Width");
-		form.addRow(label, lineEdit);
-		fields << lineEdit;
+		QLineEdit *line_edit{new QLineEdit(&dialog)};
+		QString label{"Width"};
+		form.addRow(label, line_edit);
+		fields << line_edit;
 
-		lineEdit = new QLineEdit(&dialog);
-		label = QString("Height");
-		form.addRow(label, lineEdit);
-		fields << lineEdit;
+		line_edit = new QLineEdit(&dialog);
+		label = "Height";
+		form.addRow(label, line_edit);
+		fields << line_edit;
 
-		QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
-		form.addRow(&buttonBox);
+		QDialogButtonBox button_box(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
+		form.addRow(&button_box);
 
-		QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
-		QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+		QObject::connect(&button_box, SIGNAL(accepted()), &dialog, SLOT(accept()));
+		QObject::connect(&button_box, SIGNAL(rejected()), &dialog, SLOT(reject()));
 
 		// TODO: Check if its int, maybe leaking memory idk
 		if (dialog.exec() == QDialog::Accepted) {
