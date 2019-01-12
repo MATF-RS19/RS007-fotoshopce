@@ -26,6 +26,7 @@
 	<file>icons/filters/summer.png</file>
 	<file>icons/filters/winter.png</file>
 	<file>QTDark.stylesheet</file>
+	<file>filter_paths.txt</file>
     </qresource>
     
 </RCC>
