@@ -102,13 +102,14 @@ MainWindow::~MainWindow()
 void MainWindow::show_image()
 {
 	if (m_has_image) {
-		cv::Mat current{m_image_list[m_image_index].get_current()};
-		if (image_type::grayscale == m_image_list[m_image_index].m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
-			m_lb_image->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_Indexed8)));
-		} else if (image_type::color == m_image_list[m_image_index].m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
-			m_lb_image->setPixmap(QPixmap::fromImage(QImage(current.data, current.cols, current.rows, int(current.step), QImage::Format_RGB888)));
+		auto img{m_history.current_image()};
+
+		if (image_type::grayscale == img.m_type) {
+			cv::cvtColor(img.m_img, img.m_img, cv::COLOR_BGR2GRAY);
+			m_lb_image->setPixmap(QPixmap::fromImage(QImage(img.m_img.data, img.m_img.cols, img.m_img.rows, int(img.m_img.step), QImage::Format_Indexed8)));
+		} else if (image_type::color == img.m_type) {
+			cv::cvtColor(img.m_img, img.m_img, cv::COLOR_BGR2RGB);
+			m_lb_image->setPixmap(QPixmap::fromImage(QImage(img.m_img.data, img.m_img.cols, img.m_img.rows, int(img.m_img.step), QImage::Format_RGB888)));
 		}
 	} else {
 		m_lb_image->clear();
@@ -121,14 +122,15 @@ void MainWindow::show_image()
 void MainWindow::save_image(const std::string& fileName)
 {
 	try {
-		cv::Mat current{m_image_list[m_image_index].get_current()};
-		if (image_type::grayscale == m_img.m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2GRAY);
-		} else if (image_type::color == m_img.m_type) {
-			cv::cvtColor(current, current, cv::COLOR_BGR2RGB);
+		auto img{m_history.current_image()};
+
+		if (image_type::grayscale == img.m_type) {
+			cv::cvtColor(img.m_img, img.m_img, cv::COLOR_BGR2GRAY);
+		} else if (image_type::color == img.m_type) {
+			cv::cvtColor(img.m_img, img.m_img, cv::COLOR_BGR2RGB);
 		}
 
-		cv::imwrite(fileName, current);
+		cv::imwrite(fileName, img.m_img);
 	} catch (...) {
 		QMessageBox::warning(this, "Warning", "Cannot save file" + QString::fromStdString(fileName));
 	}
@@ -156,15 +158,14 @@ void MainWindow::slider_operation(qstring_map<QSlider*> sliders, const QString &
 
 	QObject::connect(sliders[key], &QSlider::valueChanged, [this, key](auto &&e) {
 		if(m_has_image) {
-			ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
-			m_image_list[m_image_index].m_param_list.push_back(params);
-			m_image_list[m_image_index].m_index++;
-			m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].adjustment_map[key] = e;
+			auto img{m_history.current_template()};
+			auto parameters{m_history.current_parameters()};
+			parameters.adjustment_map[key] = e;
+			m_history.add_entry(img, parameters);
 
-			m_slider_values.push_back(m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].adjustment_map);
+			m_slider_values.push_back(parameters.adjustment_map);
 			m_slider_index++;
 
-			delete_after_redo();
 			show_image();
 		} else {
 			QMessageBox::warning(this, "Warning", "No image to adjust.");
@@ -186,21 +187,21 @@ void MainWindow::on_action_Open_triggered()
         }
     }
 
-	m_image_list.clear();
+	QString filename{QFileDialog::getOpenFileName(this, "Open file")};
+	m_filename = filename.toStdString();
 
-    QString fileName{QFileDialog::getOpenFileName(this, "Open file")};
 	try {
-		m_image_list.clear();
 		m_slider_values.clear();
-		m_image_index = m_slider_index = 0;
+		m_slider_index = 0;
 
-		Image img{cv::imread(fileName.toStdString()), fileName.toStdString()};
-		m_image_list.push_back(img);
+		image img(cv::imread(filename.toStdString()));
+		m_history.set_initial(img);
         m_has_image = true;
+
+		setWindowTitle(filename);
 		show_image();
-		setWindowTitle(fileName);
 	} catch (...) {
-		QMessageBox::warning(this, "Warning", "Cannot open file" + fileName);
+		QMessageBox::warning(this, "Warning", "Cannot open file" + filename);
 	}
 }
 
@@ -276,9 +277,9 @@ std::pair<qstring_map<QSlider*>, QButtonGroup*> MainWindow::create_section(QStri
 void MainWindow::on_action_Save_triggered()
 {
 	if (m_has_image) {
-		save_image(m_image_list[m_image_index].m_filename);
+		save_image(m_filename);
 	} else {
-		QMessageBox::warning(this, "Warning", "Image not loaded");
+		QMessageBox::warning(this, "Warning", "Image not loaded.");
 	}
 }
 
@@ -288,10 +289,10 @@ void MainWindow::on_action_Save_triggered()
 void MainWindow::on_action_SaveAs_triggered()
 {
 	if (m_has_image) {
-		QString file_name{QFileDialog::getSaveFileName(this, "Save as...")};
-		save_image(file_name.toStdString());
+		QString filename{QFileDialog::getSaveFileName(this, "Save as...")};
+		save_image(filename.toStdString());
 	} else {
-		QMessageBox::warning(this, "Warning", "Image not loaded");
+		QMessageBox::warning(this, "Warning", "Image not loaded.");
 	}
 }
 
@@ -303,15 +304,15 @@ void MainWindow::on_action_SaveAs_triggered()
 void MainWindow::on_action_ZoomIn_triggered()
 {
 	if (m_has_image) {
-		cv::Mat current{m_image_list[m_image_index].get_current()};
-		cv::resize(current, current, cv::Size(), 1.1, 1.1);
-		Image img{current, m_image_list[m_image_index].m_filename};
-		m_image_list.push_back(img);
-		m_image_index++;
-		delete_after_redo();
-		show_image();
+//		cv::Mat current{m_image_list[m_image_index].get_current()};
+//		cv::resize(current, current, cv::Size(), 1.1, 1.1);
+//		image img{current, m_image_list[m_image_index].m_filename};
+//		m_image_list.push_back(img);
+//		m_image_index++;
+//		delete_after_redo();
+//		show_image();
 	} else {
-		QMessageBox::warning(this, "Warning", "Image not loaded");
+		QMessageBox::warning(this, "Warning", "Image not loaded.");
 	}
 }
 
@@ -322,13 +323,13 @@ void MainWindow::on_action_ZoomIn_triggered()
 void MainWindow::on_action_ZoomOut_triggered()
 {
 	if (m_has_image) {
-		cv::Mat current{m_image_list[m_image_index].get_current()};
-		cv::resize(current, current, cv::Size(), 0.9, 0.9);
-		Image img{current, m_image_list[m_image_index].m_filename};
-		m_image_list.push_back(img);
-		m_image_index++;
-		delete_after_redo();
-		show_image();
+//		cv::Mat current{m_image_list[m_image_index].get_current()};
+//		cv::resize(current, current, cv::Size(), 0.9, 0.9);
+//		image img{current, m_image_list[m_image_index].m_filename};
+//		m_image_list.push_back(img);
+//		m_image_index++;
+//		delete_after_redo();
+//		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -340,12 +341,9 @@ void MainWindow::on_action_ZoomOut_triggered()
 void MainWindow::on_action_Mirror_triggered()
 {
 	if (m_has_image) {
-		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
-		std::swap(params.corners[0], params.corners[1]);
-		std::swap(params.corners[2], params.corners[3]);
-		m_image_list[m_image_index].m_param_list.push_back(params);
-		m_image_list[m_image_index].m_index++;
-		delete_after_redo();
+		image img{m_history.current_template()};
+		cv::flip(img.m_img, img.m_img, 1);
+		m_history.add_entry(img, m_history.current_parameters());
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -358,15 +356,9 @@ void MainWindow::on_action_Mirror_triggered()
 void MainWindow::on_action_Rotate_left_triggered()
 {
     if (m_has_image) {
-		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
-		auto a{params.corners[0]}, b{params.corners[1]}, c{params.corners[2]}, d{params.corners[3]};
-		params.corners[0] = b;
-		params.corners[1] = d;
-		params.corners[2] = a;
-		params.corners[3] = c;
-		m_image_list[m_image_index].m_param_list.push_back(params);
-		m_image_list[m_image_index].m_index++;
-		delete_after_redo();
+		image img(m_history.current_template());
+		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_COUNTERCLOCKWISE);
+		m_history.add_entry(img, m_history.current_parameters());
 		show_image();
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -379,15 +371,9 @@ void MainWindow::on_action_Rotate_left_triggered()
 void MainWindow::on_action_Rotate_right_triggered()
 {
     if (m_has_image) {
-		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
-		auto a{params.corners[0]}, b{params.corners[1]}, c{params.corners[2]}, d{params.corners[3]};
-		params.corners[0] = c;
-		params.corners[1] = a;
-		params.corners[2] = d;
-		params.corners[3] = b;
-		m_image_list[m_image_index].m_param_list.push_back(params);
-		m_image_list[m_image_index].m_index++;
-		delete_after_redo();
+		image img(m_history.current_template());
+		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_CLOCKWISE);
+		m_history.add_entry(img, m_history.current_parameters());
 		show_image();
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
@@ -398,28 +384,12 @@ void MainWindow::on_action_Rotate_right_triggered()
 /*
 * @brief Convert image to RGB.
 */
-void MainWindow::on_btRGB_triggered()
-{
-	if (m_has_image) {
-		m_image_list[m_image_index].m_type = image_type::color;
-		show_image();
-	} else {
-		QMessageBox::warning(this, "Warning", "Image not loaded");
-	}
-}
+void MainWindow::on_btRGB_triggered() {}
 
 /*
 * @brief Convert image to grayscale.
 */
-void MainWindow::on_btGray_triggered()
-{
-	if (m_has_image) {
-		m_image_list[m_image_index].m_type = image_type::grayscale;
-		show_image();
-	} else {
-		QMessageBox::warning(this, "Warning", "Image not loaded");
-	}
-}
+void MainWindow::on_btGray_triggered() {}
 
 /*
 * @brief Delete current image.
@@ -427,16 +397,13 @@ void MainWindow::on_btGray_triggered()
 void MainWindow::on_action_Delete_triggered()
 {
 	if (m_has_image) {
-		QMessageBox::StandardButton reply;
-		reply = QMessageBox::question(this, "Warning", "Are you sure you want to delete current image?", QMessageBox::Yes | QMessageBox::No);
+		QMessageBox::StandardButton reply{QMessageBox::question(this, "Warning", "Are you sure you want to delete current image?", QMessageBox::Yes | QMessageBox::No)};
 		if (reply == QMessageBox::Yes) {
-			m_image_list.clear();
 			m_slider_values.clear();
-			m_image_index = m_slider_index = 0;
+			m_slider_index = 0;
 			m_has_image = false;
 			show_image();
 		}
-
 	} else {
 		QMessageBox::warning(this, "Warning", "Nothing to delete");
 	}
@@ -490,7 +457,7 @@ void MainWindow::on_action_Resize_triggered()
 
 		form.addRow(new QLabel("Choose width and height"));
 
-		QList<QLineEdit *> fields;
+		QList<QLineEdit*> fields;
 
 		QLineEdit *lineEdit = new QLineEdit(&dialog);
 		QString label = QString("Width");
@@ -510,12 +477,9 @@ void MainWindow::on_action_Resize_triggered()
 
 		// TODO: Check if its int, maybe leaking memory idk
 		if (dialog.exec() == QDialog::Accepted) {
-			cv::Mat current{m_image_list[m_image_index].get_current()};
-			cv::resize(current, current, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
-			Image img{current, m_image_list[m_image_index].m_filename};
-			m_image_list.push_back(img);
-			m_image_index++;
-			delete_after_redo();
+			image img{m_history.current_template()};
+			cv::resize(img.m_img, img.m_img, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
+			m_history.add_entry(img, m_history.current_parameters());
 			show_image();
 		}
 
@@ -541,14 +505,8 @@ void MainWindow::on_action_Exit_triggered()
 */
 void MainWindow::on_action_Undo_triggered()
 {
-	if (m_has_image) {
-		if (0 == m_image_list[m_image_index].m_index && 0 == m_image_index) {
-			QMessageBox::warning(this, "Warning", "Nothing to undo");
-		} else if (0 == m_image_list[m_image_index].m_index) {
-			m_image_index--;
-		} else {
-			m_image_list[m_image_index].m_index--;
-		}
+	if (m_has_image && m_history.undoable()) {
+		m_history.undo();
 
 		if(m_slider_index) {
 			m_slider_index--;
@@ -568,14 +526,8 @@ void MainWindow::on_action_Undo_triggered()
 */
 void MainWindow::on_action_Redo_triggered()
 {
-	if (m_has_image) {
-		if (m_image_list[m_image_index].m_index + 1 == m_image_list[m_image_index].m_param_list.size() && m_image_index + 1 == m_image_list.size()) {
-			QMessageBox::warning(this, "Warning", "Nothing to redo");
-		} else if (m_image_list[m_image_index].m_index + 1 == m_image_list[m_image_index].m_param_list.size()) {
-			m_image_index++;
-		} else {
-			m_image_list[m_image_index].m_index++;
-		}
+	if (m_has_image && m_history.redoable()) {
+		m_history.redo();
 
 		if(m_slider_index < m_slider_values.size() - 1) {
 			m_slider_index++;
@@ -587,24 +539,6 @@ void MainWindow::on_action_Redo_triggered()
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Nothing to redo");
-	}
-}
-
-/*
-* @brief Delete the adjusted image after redoing adjustments.
-*/
-void MainWindow::delete_after_redo() {
-	if (m_image_index != m_image_list.size()) {
-		m_image_list.erase(m_image_list.begin() + int(m_image_index) + 1, m_image_list.end());
-	}
-
-	if (m_image_list[m_image_index].m_index != m_image_list[m_image_index].m_param_list.size()) {
-		m_image_list[m_image_index].m_param_list.erase(m_image_list[m_image_index].m_param_list.begin() + int(m_image_list[m_image_index].m_index) + 1,
-										   m_image_list[m_image_index].m_param_list.end());
-	}
-
-	if(m_slider_index != m_slider_values.size()) {
-		m_slider_values.erase(m_slider_values.begin() + int(m_slider_index), m_slider_values.end());
 	}
 }
 

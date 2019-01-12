@@ -43,7 +43,7 @@ enum class filters
 /*
 * @brief Structure that represents image parameters.
 */
-struct ImageParams
+struct image_parameters
 {
 	std::array<image_corners, 4> corners{image_corners::top_left, image_corners::top_right, image_corners::bottom_left, image_corners::bottom_right};
 	filters filter{filters::none};

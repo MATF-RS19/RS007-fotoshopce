@@ -30,28 +30,21 @@ enum class image_type
 /*
 * @brief Class representing an OpenCV image with utility parameters.
 */
-class Image
+class image
 {
 	// Friend declarations
 	friend MainWindow;
 
 	// Public member functions
 	public:
-		explicit Image(const cv::Mat& img = cv::Mat(), std::string filename = "");
-		Image(const Image &img);
-		~Image();
+		explicit image(const cv::Mat& img = cv::Mat());
+		image(const image &img);
+		~image();
 
-		static Image set_parameters(Image img, const ImageParams &params);
-
-	// Private member functions
-	private:
-		cv::Mat get_current();
-
+		static image set_parameters(image img, image_parameters params);
 	// Private member variables
 	private:
 		cv::Mat m_img;
-		std::string m_filename;
 		image_type m_type;
-		std::vector<ImageParams> m_param_list;
 		unsigned long m_index;
 };

@@ -29,6 +29,7 @@
 #include "image_params.h"
 #include "section.h"
 #include "utils.h"
+#include "utils/image_history.hpp"
 //#include "edit_operations.h"
 
 //template <typename T>
@@ -40,11 +41,12 @@ class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 
-	// Public member functions
+	/* Public member functions */
 	public:
 		explicit MainWindow(QWidget *parent = nullptr);
 		~MainWindow();
-	// Private slots
+
+	/* Private slots */
 	private slots:
 		void on_action_ZoomIn_triggered();
 		void on_action_ZoomOut_triggered();
@@ -61,9 +63,9 @@ class MainWindow : public QMainWindow
 		void on_action_Rotate_right_triggered();
         void on_action_Undo_triggered();
         void on_action_Redo_triggered();
-	// Private member functions
 		void on_action_Crop_triggered();
 
+	/* Private member functions */
 	private:
 		void show_image();
 		void save_image(const std::string& fileName);
@@ -71,18 +73,17 @@ class MainWindow : public QMainWindow
 		void slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value = 50);
 		qstring_map<QSlider*> create_section(QString name, const std::vector<QString> &contents);
 		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one = true);
-		void delete_after_redo();
-	// Private variables
+
+	/* Private variables */
 	private:
-		// Define the image
 		Ui::MainWindow *ui;
 		QLabel* m_lb_image;
-		Image m_img;
 		bool m_has_image;
+		rs::utils::image_history m_history;
 		std::vector<Section*> m_sections;
-		std::vector<Image> m_image_list;
 		qstring_map<QSlider*> m_sliders;
-		unsigned long m_image_index, m_slider_index;
+		std::string m_filename;
+		size_t m_slider_index;
 		std::vector<qstring_map<int>> m_slider_values;
 };
 

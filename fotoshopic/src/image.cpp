@@ -5,21 +5,17 @@
 /*
 * @brief Builds instance of Image.
 */
-Image::Image(const cv::Mat& img, std::string filename)
+image::image(const cv::Mat& img)
 	:	m_img(img),
-		m_filename(std::move(filename)),
 		m_type{image_type::color},
-		m_param_list(1),
 		m_index{0}
 {}
 
 /*
 * @brief Copies instance of Image.
 */
-Image::Image(const Image &img)
-	:	m_filename(img.m_filename),
-		m_type{img.m_type},
-		m_param_list(img.m_param_list),
+image::image(const image &img)
+	:	m_type{img.m_type},
 		m_index{img.m_index}
 {
 	img.m_img.copyTo(m_img);
@@ -29,68 +25,22 @@ Image::Image(const Image &img)
 * @brief Destroys instance of Image
 * TODO: Check if this is necessary [@milanilic332]
 */
-Image::~Image() { m_img.release(); }
+image::~image() { m_img.release(); }
 
-// TODO: Implement parameter setting [@stefanpantic]
-Image Image::set_parameters(Image img, const ImageParams &params)
-{
-	return Image();
-}
-
-
+/*
+* @brief Transforms image using parameters.
+*/
 // TODO: Refactor function [@stefanpantic]
-cv::Mat Image::get_current()
+image image::set_parameters(image img, image_parameters params)
 {
 	cv::Mat new_image;
-	m_img.copyTo(new_image);
+	img.m_img.copyTo(new_image);
 
-	auto tl{m_param_list[m_index].corners[0]}, tr{m_param_list[m_index].corners[1]}, bl{m_param_list[m_index].corners[2]}, br{m_param_list[m_index].corners[3]};
-
-	// TODO: Move ifs to function [@milanilic332]
-	if (tl == image_corners::top_right && tr == image_corners::bottom_right &&
-		bl == image_corners::top_left && br == image_corners::bottom_left) {
-			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
-	}
-
-	if (tl == image_corners::bottom_right && tr == image_corners::bottom_left &&
-		bl == image_corners::top_right && br == image_corners::top_left) {
-			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
-			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
-	}
-
-	if (tl == image_corners::bottom_left && tr == image_corners::top_left &&
-		bl == image_corners::bottom_right && br == image_corners::top_right) {
-			cv::rotate(new_image, new_image, cv::ROTATE_90_CLOCKWISE);
-	}
-
-	if (tl == image_corners::bottom_right && tr == image_corners::top_right &&
-		bl == image_corners::bottom_left && br == image_corners::top_left) {
-			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
-			cv::flip(new_image, new_image, 1);
-	}
-
-	if (tl == image_corners::bottom_left && tr == image_corners::bottom_right &&
-		bl == image_corners::top_left && br == image_corners::top_right) {
-			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
-			cv::rotate(new_image, new_image, cv::ROTATE_90_COUNTERCLOCKWISE);
-			cv::flip(new_image, new_image, 1);
-	}
-	if (tl == image_corners::top_left && tr == image_corners::bottom_left &&
-		bl == image_corners::top_right && br == image_corners::bottom_right) {
-			cv::rotate(new_image, new_image, cv::ROTATE_90_CLOCKWISE);
-			cv::flip(new_image, new_image, 1);
-	}
-
-	if (tl == image_corners::top_right && tr == image_corners::top_left &&
-		bl == image_corners::bottom_right && br == image_corners::bottom_left) {
-			cv::flip(new_image, new_image, 1);
-	}
-
-	int brightness{m_param_list[m_index].adjustment_map[QString::fromStdString("Brightness")]};
-	int contrast{m_param_list[m_index].adjustment_map[QString::fromStdString("Contrast")]};
-	int blur{m_param_list[m_index].adjustment_map[QString::fromStdString("Blur")]};
-	int sharpen{m_param_list[m_index].adjustment_map[QString::fromStdString("Sharpen")]};
-	int vignette{m_param_list[m_index].adjustment_map[QString::fromStdString("Vignette")]};
+	int brightness{params.adjustment_map[QString::fromStdString("Brightness")]};
+	int contrast{params.adjustment_map[QString::fromStdString("Contrast")]};
+	int blur{params.adjustment_map[QString::fromStdString("Blur")]};
+	int sharpen{params.adjustment_map[QString::fromStdString("Sharpen")]};
+	int vignette{params.adjustment_map[QString::fromStdString("Vignette")]};
 
 	// Set the brightness value
 	double brightness_value{brightness - 50.0};
@@ -136,7 +86,7 @@ cv::Mat Image::get_current()
 	}
 
 	// Apply filter
-	switch (m_param_list[m_index].filter)
+	switch (params.filter)
 	{
 		case filters::none:
 			break;
@@ -179,5 +129,5 @@ cv::Mat Image::get_current()
 	}
 
 
-	return new_image;
+	return image(new_image);
 }
