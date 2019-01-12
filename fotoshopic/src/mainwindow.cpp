@@ -618,7 +618,7 @@ void MainWindow::on_action_Resize_triggered()
 			// Updates image history
 			if (m_image_list.size() == m_image_index + 1) {
 				m_image_list.push_back(std::move(img));
-				m_image_list[m_image_index].m_index++;
+				m_image_index++;
 			} else {
 				m_image_list[++m_image_index] = std::move(img);
 			}
