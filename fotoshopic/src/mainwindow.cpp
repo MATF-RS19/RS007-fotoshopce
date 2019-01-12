@@ -409,8 +409,12 @@ void MainWindow::on_action_ZoomIn_triggered()
 		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		params.size.first = int(params.size.first*1.1);
 		params.size.second = int(params.size.second*1.1);
-		m_image_list[m_image_index].m_param_list.push_back(params);
-		m_image_list[m_image_index].m_index++;
+		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
+			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
+			m_image_list[m_image_index].m_index++;
+		} else {
+			m_image_list[m_image_index].m_param_list[++m_image_list[m_image_index].m_index] = std::move(params);
+		}
 		cv::Mat current{m_image_list[m_image_index].get_current()};
 		update_edges_and_size(current);
 		delete_after_redo();
@@ -430,8 +434,12 @@ void MainWindow::on_action_ZoomOut_triggered()
 		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		params.size.first = int(params.size.first*0.9);
 		params.size.second = int(params.size.second*0.9);
-		m_image_list[m_image_index].m_param_list.push_back(params);
-		m_image_list[m_image_index].m_index++;
+		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
+			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
+			m_image_list[m_image_index].m_index++;
+		} else {
+			m_image_list[m_image_index].m_param_list[++m_image_list[m_image_index].m_index] = std::move(params);
+		}
 		cv::Mat current{m_image_list[m_image_index].get_current()};
 		update_edges_and_size(current);
 		delete_after_redo();
@@ -450,8 +458,12 @@ void MainWindow::on_action_Mirror_triggered()
 		ImageParams params{m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index]};
 		std::swap(params.corners[0], params.corners[1]);
 		std::swap(params.corners[2], params.corners[3]);
-		m_image_list[m_image_index].m_param_list.push_back(params);
-		m_image_list[m_image_index].m_index++;
+		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
+			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
+			m_image_list[m_image_index].m_index++;
+		} else {
+			m_image_list[m_image_index].m_param_list[++m_image_list[m_image_index].m_index] = std::move(params);
+		}
 		cv::Mat current{m_image_list[m_image_index].get_current()};
 		update_edges_and_size(current);
 		delete_after_redo();
@@ -473,8 +485,13 @@ void MainWindow::on_action_Rotate_left_triggered()
 		params.corners[1] = d;
 		params.corners[2] = a;
 		params.corners[3] = c;
-		m_image_list[m_image_index].m_param_list.push_back(params);
-		m_image_list[m_image_index].m_index++;
+		std::swap(params.size.first, params.size.second);
+		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
+			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
+			m_image_list[m_image_index].m_index++;
+		} else {
+			m_image_list[m_image_index].m_param_list[++m_image_list[m_image_index].m_index] = std::move(params);
+		}
 		cv::Mat current = m_image_list[m_image_index].get_current();
 		update_edges_and_size(current);
 		delete_after_redo();
@@ -496,8 +513,13 @@ void MainWindow::on_action_Rotate_right_triggered()
 		params.corners[1] = a;
 		params.corners[2] = d;
 		params.corners[3] = b;
-		m_image_list[m_image_index].m_param_list.push_back(params);
-		m_image_list[m_image_index].m_index++;
+		std::swap(params.size.first, params.size.second);
+		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
+			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
+			m_image_list[m_image_index].m_index++;
+		} else {
+			m_image_list[m_image_index].m_param_list[++m_image_list[m_image_index].m_index] = std::move(params);
+		}
 		cv::Mat current = m_image_list[m_image_index].get_current();
 		update_edges_and_size(current);
 		delete_after_redo();
@@ -574,8 +596,12 @@ void MainWindow::on_action_Resize_triggered()
 			cv::resize(current, current, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
 
 			Image img{current, m_image_list[m_image_index].m_filename};
-			m_image_list.push_back(img);
-			m_image_index++;
+			if (m_image_list.size() == m_image_index + 1) {
+				m_image_list.push_back(std::move(img));
+				m_image_list[m_image_index].m_index++;
+			} else {
+				m_image_list[++m_image_index] = std::move(img);
+			}
 
 			update_edges_and_size(current);
 			delete_after_redo();
@@ -613,6 +639,7 @@ void MainWindow::on_action_Undo_triggered()
 			m_image_list[m_image_index].m_index--;
 		}
 
+		// TODO: This crashes
 		if(m_slider_index) {
 			m_slider_index--;
 			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
@@ -639,7 +666,7 @@ void MainWindow::on_action_Redo_triggered()
 		} else {
 			m_image_list[m_image_index].m_index++;
 		}
-
+		// TODO: This crashes
 		if(m_slider_index < m_slider_values.size() - 1) {
 			m_slider_index++;
 			for(auto &&slider_pair : m_slider_values[m_slider_index]) {
@@ -657,11 +684,11 @@ void MainWindow::on_action_Redo_triggered()
 * @brief Delete the adjusted image after redoing adjustments.
 */
 void MainWindow::delete_after_redo() {
-	if (m_image_index != m_image_list.size()) {
+	if (m_image_index + 1 != m_image_list.size()) {
 		m_image_list.erase(m_image_list.begin() + int(m_image_index) + 1, m_image_list.end());
 	}
 
-	if (m_image_list[m_image_index].m_index != m_image_list[m_image_index].m_param_list.size()) {
+	if (m_image_list[m_image_index].m_index + 1 != m_image_list[m_image_index].m_param_list.size()) {
 		m_image_list[m_image_index].m_param_list.erase(m_image_list[m_image_index].m_param_list.begin() + int(m_image_list[m_image_index].m_index) + 1,
 										   m_image_list[m_image_index].m_param_list.end());
 	}

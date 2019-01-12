@@ -143,8 +143,6 @@
    <addaction name="action_Crop"/>
    <addaction name="action_Resize"/>
    <addaction name="action_Mirror"/>
-   <addaction name="action_Draw"/>
-   <addaction name="action_Text"/>
    <addaction name="action_Undo"/>
    <addaction name="action_Redo"/>
    <addaction name="action_Delete"/>
@@ -253,24 +251,6 @@
    </property>
    <property name="text">
     <string>&amp;Mirror</string>
-   </property>
-  </action>
-  <action name="action_Draw">
-   <property name="icon">
-    <iconset resource="../resources/icons.qrc">
-     <normaloff>:/icons/icons/draw.png</normaloff>:/icons/icons/draw.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Draw</string>
-   </property>
-  </action>
-  <action name="action_Text">
-   <property name="icon">
-    <iconset resource="../resources/icons.qrc">
-     <normaloff>:/icons/icons/text.png</normaloff>:/icons/icons/text.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Text</string>
    </property>
   </action>
   <action name="action_Rotate_right">
