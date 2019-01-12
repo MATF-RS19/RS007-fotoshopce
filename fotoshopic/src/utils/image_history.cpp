@@ -29,7 +29,7 @@ namespace rs::utils
 		m_entries.push_back({img, params});
 		m_position += 1;
 
-		if(m_position + 1 != m_entries.size()) {
+		if(m_position + 1 != int(m_entries.size())) {
 			m_entries.erase(m_entries.begin() + int(m_position), m_entries.end());
 		}
 	}
@@ -39,7 +39,7 @@ namespace rs::utils
 	*/
 	image image_history::undo()
 	{
-		m_position -= 1;
+		m_position = std::max(0, m_position - 1);
 		return image::set_parameters(m_entries[m_position].first, m_entries[m_position].second);
 	}
 
@@ -48,7 +48,7 @@ namespace rs::utils
 	*/
 	image image_history::redo()
 	{
-		m_position += 1;
+		m_position = std::min(int(m_entries.size() - 1), m_position + 1);
 		return image::set_parameters(m_entries[m_position].first, m_entries[m_position].second);
 	}
 
