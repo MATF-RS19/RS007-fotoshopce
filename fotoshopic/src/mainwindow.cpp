@@ -18,18 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
 		m_has_image{false},
 		m_slider_index{0},
 		m_slider_values(1),
-		m_filter_filenames{qstring_pair(":/icons/icons/filters/autumn.png", "Autumn"),
-						   qstring_pair(":/icons/icons/filters/bone.png", "Bone"),
-						   qstring_pair(":/icons/icons/filters/jet.png", "Jet"),
-						   qstring_pair(":/icons/icons/filters/winter.png", "Winter"),
-						   qstring_pair(":/icons/icons/filters/rainbow.png", "Rainbow"),
-						   qstring_pair(":/icons/icons/filters/ocean.png", "Ocean"),
-						   qstring_pair(":/icons/icons/filters/summer.png", "Summer"),
-						   qstring_pair(":/icons/icons/filters/spring.png", "Spring"),
-						   qstring_pair(":/icons/icons/filters/cool.png", "Cool"),
-						   qstring_pair(":/icons/icons/filters/hsv.png", "HSV"),
-						   qstring_pair(":/icons/icons/filters/pink.png", "Pink"),
-						   qstring_pair(":/icons/icons/filters/hot.png", "Hot")}
+		m_filter_filenames{read_filter_filenames()}
 {
 	ui->setupUi(this);
 
@@ -68,8 +57,8 @@ MainWindow::MainWindow(QWidget *parent)
 	for(size_t i = 0; i < m_filter_buttons.size(); ++i)
 	{
 		m_filter_buttons[i].first->setIcon(QIcon(m_filter_filenames[i].first));
-		m_filter_buttons[i].first->setIconSize(QSize(65, 65));
-		m_filter_buttons[i].first->setToolTip(QString::fromStdString(m_filter_filenames[i].second));
+		m_filter_buttons[i].first->setIconSize(QSize(69, 69));
+		m_filter_buttons[i].first->setToolTip(m_filter_filenames[i].second);
 	}
 
 	// Setting Widget params
@@ -113,6 +102,28 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
 	delete ui;
+}
+
+std::vector<std::pair<QString, QString>> MainWindow::read_filter_filenames()
+{
+	std::vector<std::pair<QString, QString>> filter_filenames;
+	QFile ifile(QString(":icons/filter_paths.txt"));
+	ifile.open(QIODevice::ReadOnly);
+	if(!ifile.isOpen()) {
+		QMessageBox::warning(this, "Warning", "Cannot open filter paths file.");
+		return filter_filenames;
+	}
+
+	QTextStream stream(&ifile);
+	QString line{stream.readLine()};
+
+	while (!line.isNull()) {
+		auto split_line{line.split(QString(","))};
+		filter_filenames.push_back({split_line[0].trimmed(), split_line[1].trimmed()});
+		line = stream.readLine();
+	}
+
+	return filter_filenames;
 }
 
 /*

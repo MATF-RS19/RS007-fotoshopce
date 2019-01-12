@@ -21,6 +21,7 @@
 #include <QButtonGroup>
 #include <QRadioButton>
 #include <QResizeEvent>
+#include <QTextStream>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -79,6 +80,7 @@ class MainWindow : public QMainWindow
 		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one = true);
 		std::vector<std::pair<QPushButton*, filters>> create_section(QString name);
 		std::vector<std::pair<QPushButton*, image_type>> create_type_section(QString name);
+		std::vector<std::pair<QString, QString>> read_filter_filenames();
 		// Makes redo impossible after operation
 		void delete_after_redo();
 		// Fixes shown part of image when zoomed
@@ -97,6 +99,6 @@ class MainWindow : public QMainWindow
 		std::vector<qstring_map<int>> m_slider_values;
 		std::vector<std::pair<QPushButton*, filters>> m_filter_buttons;
 		std::vector<std::pair<QPushButton*, image_type>> m_image_type_buttons;
-		std::vector<std::pair<QString, std::string>> m_filter_filenames;
+		std::vector<std::pair<QString, QString>> m_filter_filenames;
 };
 
