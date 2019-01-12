@@ -85,6 +85,8 @@ class MainWindow : public QMainWindow
 		void delete_after_redo();
 		// Fixes shown part of image when zoomed
 		void update_edges_and_size(const cv::Mat& current);
+		// Grouping updates
+		void update_params(const ImageParams& params);
 	// Private variables
 	private:
 		// Define the image

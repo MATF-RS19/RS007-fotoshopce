@@ -419,17 +419,7 @@ void MainWindow::on_action_ZoomIn_triggered()
 		params.size.first = int(params.size.first*1.1);
 		params.size.second = int(params.size.second*1.1);
 
-		// Updates image history
-		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
-			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
-			m_image_list[m_image_index].m_index++;
-		} else {
-			m_image_list[m_image_index].m_param_list[++m_image_list[m_image_index].m_index] = std::move(params);
-		}
-		cv::Mat current{m_image_list[m_image_index].get_current()};
-		update_edges_and_size(current);
-		delete_after_redo();
-		show_image();
+		update_params(params);
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -446,17 +436,7 @@ void MainWindow::on_action_ZoomOut_triggered()
 		params.size.first = int(params.size.first*0.9);
 		params.size.second = int(params.size.second*0.9);
 
-		// Updates image history
-		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
-			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
-			m_image_list[m_image_index].m_index++;
-		} else {
-			m_image_list[m_image_index].m_param_list[++m_image_list[m_image_index].m_index] = std::move(params);
-		}
-		cv::Mat current{m_image_list[m_image_index].get_current()};
-		update_edges_and_size(current);
-		delete_after_redo();
-		show_image();
+		update_params(params);
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -472,17 +452,7 @@ void MainWindow::on_action_Mirror_triggered()
 		std::swap(params.corners[0], params.corners[1]);
 		std::swap(params.corners[2], params.corners[3]);
 
-		// Updates image history
-		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
-			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
-			m_image_list[m_image_index].m_index++;
-		} else {
-			m_image_list[m_image_index].m_param_list[++m_image_list[m_image_index].m_index] = std::move(params);
-		}
-		cv::Mat current{m_image_list[m_image_index].get_current()};
-		update_edges_and_size(current);
-		delete_after_redo();
-		show_image();
+		update_params(params);
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded");
 	}
@@ -502,17 +472,7 @@ void MainWindow::on_action_Rotate_left_triggered()
 		params.corners[3] = c;
 		std::swap(params.size.first, params.size.second);
 
-		// Updates image history
-		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
-			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
-			m_image_list[m_image_index].m_index++;
-		} else {
-			m_image_list[m_image_index].m_param_list[++m_image_list[m_image_index].m_index] = std::move(params);
-		}
-		cv::Mat current = m_image_list[m_image_index].get_current();
-		update_edges_and_size(current);
-		delete_after_redo();
-		show_image();
+		update_params(params);
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
     }
@@ -532,17 +492,7 @@ void MainWindow::on_action_Rotate_right_triggered()
 		params.corners[3] = b;
 		std::swap(params.size.first, params.size.second);
 
-		// Updates image history
-		if (m_image_list[m_image_index].m_param_list.size() == m_image_list[m_image_index].m_index + 1) {
-			m_image_list[m_image_index].m_param_list.push_back(std::move(params));
-			m_image_list[m_image_index].m_index++;
-		} else {
-			m_image_list[m_image_index].m_param_list[++m_image_list[m_image_index].m_index] = std::move(params);
-		}
-		cv::Mat current = m_image_list[m_image_index].get_current();
-		update_edges_and_size(current);
-		delete_after_redo();
-		show_image();
+		update_params(params);
     } else {
         QMessageBox::warning(this, "Warning", "Image not loaded");
     }
@@ -615,15 +565,13 @@ void MainWindow::on_action_Resize_triggered()
 
 			Image img{current, m_image_list[m_image_index].m_filename};
 
-			// Updates image history
-			if (m_image_list.size() == m_image_index + 1) {
-				m_image_list.push_back(std::move(img));
-				m_image_index++;
-			} else {
-				m_image_list[++m_image_index] = std::move(img);
-			}
-			update_edges_and_size(current);
 			delete_after_redo();
+
+			// Updates image history
+			m_image_list.push_back(std::move(img));
+			m_image_index++;
+
+			update_edges_and_size(current);
 			show_image();
 		}
 
@@ -665,7 +613,8 @@ void MainWindow::on_action_Undo_triggered()
 //				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
 //			}
 //		}
-
+		cv::Mat current = m_image_list[m_image_index].get_current();
+		update_edges_and_size(current);
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Nothing to undo");
@@ -693,7 +642,8 @@ void MainWindow::on_action_Redo_triggered()
 //				m_sliders[slider_pair.first]->setSliderPosition(slider_pair.second);
 //			}
 //		}
-
+		cv::Mat current = m_image_list[m_image_index].get_current();
+		update_edges_and_size(current);
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Nothing to redo");
@@ -770,3 +720,14 @@ void MainWindow::update_edges_and_size(const cv::Mat& current) {
 	}
 }
 
+void MainWindow::update_params(const ImageParams &params) {
+	delete_after_redo();
+
+	// Updates image history
+	m_image_list[m_image_index].m_param_list.push_back(std::move(params));
+	m_image_list[m_image_index].m_index++;
+
+	cv::Mat current = m_image_list[m_image_index].get_current();
+	update_edges_and_size(current);
+	show_image();
+}
