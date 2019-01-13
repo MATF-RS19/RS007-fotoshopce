@@ -61,7 +61,6 @@ MainWindow::~MainWindow()
 */
 void MainWindow::resizeEvent(QResizeEvent*) {
 	if (m_has_image) {
-		// Milane jebem ti mater nauci da ne koristis = za inicijalizaciju.
 		auto params{update_edges_and_size()};
 		auto img{m_history.current_template()};
 		m_history.add_entry(img, params);
@@ -408,6 +407,26 @@ void MainWindow::on_action_ZoomIn_triggered()
 		auto params{m_history.current_parameters()};
 		params.size.first = int(params.size.first * 1.1);
 		params.size.second = int(params.size.second * 1.1);
+
+		auto current_width{m_lb_image->size().width()};
+		auto current_height{m_lb_image->size().height()};
+
+		if (params.size.first > current_width) {
+			params.current_left = (params.size.first - current_width)/2;
+			params.current_right = params.size.first - (params.size.first - current_width)/2;
+		} else {
+			params.current_left = 0;
+			params.current_right = params.size.first;
+		}
+
+		if (params.size.second > current_height) {
+			params.current_top = (params.size.second - current_height)/2;
+			params.current_bottom = params.size.second - (params.size.second - current_height)/2;
+		} else {
+			params.current_top = 0;
+			params.current_bottom = params.size.second;
+		}
+
 		m_history.add_entry(img, params);
 		show_image();
 	} else {
@@ -425,6 +444,26 @@ void MainWindow::on_action_ZoomOut_triggered()
 		auto params{m_history.current_parameters()};
 		params.size.first = int(params.size.first * 0.9);
 		params.size.second = int(params.size.second * 0.9);
+
+		auto current_width{m_lb_image->size().width()};
+		auto current_height{m_lb_image->size().height()};
+
+		if (params.size.first > current_width) {
+			params.current_left = (params.size.first - current_width)/2;
+			params.current_right = params.size.first - (params.size.first - current_width)/2;
+		} else {
+			params.current_left = 0;
+			params.current_right = params.size.first;
+		}
+
+		if (params.size.second > current_height) {
+			params.current_top = (params.size.second - current_height)/2;
+			params.current_bottom = params.size.second - (params.size.second - current_height)/2;
+		} else {
+			params.current_top = 0;
+			params.current_bottom = params.size.second;
+		}
+
 		m_history.add_entry(img, params);
 		show_image();
 	} else {
