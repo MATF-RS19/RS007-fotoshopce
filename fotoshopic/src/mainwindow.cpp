@@ -390,7 +390,9 @@ void MainWindow::on_action_SaveAs_triggered()
 {
 	if (m_has_image) {
 		QString filename{QFileDialog::getSaveFileName(this, "Save as...")};
-		save_image(filename.toStdString());
+		m_filename = filename.toStdString();
+		ui->statusBar->showMessage(filename);
+		save_image(m_filename);
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded.");
 	}
