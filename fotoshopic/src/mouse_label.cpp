@@ -1,10 +1,12 @@
 #include "headers/mouse_label.h"
 
-MouseLabel::MouseLabel(QWidget* parent, Qt::WindowFlags)
-	: QLabel(parent), m_pressed{false}, m_previous_pos{-1, -1}, m_diff{-1, -1}
-{}
 
-MouseLabel::~MouseLabel() {}
+MouseLabel::MouseLabel(QWidget* parent, Qt::WindowFlags)
+	:	QLabel(parent),
+		m_pressed{false},
+		m_previous_pos{-1, -1},
+		m_diff{-1, -1}
+{}
 
 std::pair<int, int> MouseLabel::get_previous() {
 	return m_previous_pos;
