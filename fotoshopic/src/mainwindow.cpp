@@ -31,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent)
 	// Create photo adjustment sliders
 	create_section("Basic settings", {{"Brightness", 50}, {"Contrast", 50}, {"Saturation", 50}});
 	create_section("Advanced settings", {{"Sharpen", 0}, {"Vignette", 0}, {"Blur", 0}});
-	create_section("Color settings", {{"Hue", 50}, {"Saturation", 50}, {"Luminance", 50}});
+	create_section("Color settings", {{"Hue", 50}, {"Saturation", 50}, {"Value", 50}});
 	create_filter_section("Filters");
 	create_type_section("Color mode");
 	sync_sections();
@@ -62,8 +62,9 @@ MainWindow::~MainWindow()
 void MainWindow::resizeEvent(QResizeEvent*) {
 	if (m_has_image) {
 		// Milane jebem ti mater nauci da ne koristis = za inicijalizaciju.
-		auto img{m_history.current_image()};
-//		update_edges_and_size(img); // TODO
+		auto params{update_edges_and_size()};
+		auto img{m_history.current_template()};
+		m_history.add_entry(img, params);
 		show_image();
 	}
 }
@@ -76,14 +77,14 @@ void MainWindow::show_image()
 	if (m_has_image) {
 		// Takodje jebo te camel case
 		auto img{m_history.current_image()};
-		auto params{m_history.current_params()};
+		auto params{m_history.current_parameters()};
 		cv::Rect myROI(params.current_left,
 					   params.current_top,
 					   params.current_right - params.current_left,
 					   params.current_bottom - params.current_top);
-		cv::Mat cropped{current.m_img(myROI)};
-		cv::cvtColor(cropped.m_img, cropped.m_img, cv::COLOR_BGR2RGB);
-		m_lb_image->setPixmap(QPixmap::fromImage(QImage(cropped.m_img.data, cropped.m_img.cols, cropped.m_img.rows, int(cropped.m_img.step), QImage::Format_RGB888)));
+		cv::Mat cropped{img.m_img(myROI)};
+		cv::cvtColor(cropped, cropped, cv::COLOR_BGR2RGB);
+		m_lb_image->setPixmap(QPixmap::fromImage(QImage(img.m_img.data, img.m_img.cols, img.m_img.rows, int(img.m_img.step), QImage::Format_RGB888)));
 	} else {
 		m_lb_image->clear();
 	}
@@ -98,7 +99,7 @@ void MainWindow::save_image(const std::string& filename)
 		auto img{m_history.current_image()};
 		cv::imwrite(filename, img.m_img);
 	} catch (...) {
-		QMessageBox::warning(this, "Warning", "Cannot save file" + QString::fromStdString(fileName));
+		QMessageBox::warning(this, "Warning", "Cannot save file" + QString::fromStdString(filename));
 	}
 }
 
@@ -138,7 +139,7 @@ void MainWindow::slider_operation(QSlider *slider, const QString &name, int valu
 	slider->setSliderPosition(value);
 	slider->setTracking(false);
 
-	QObject::connect(slider, &QSlider::valueChanged, [name, slider, this](auto &&e) {
+	QObject::connect(slider, &QSlider::valueChanged, [name, slider, value, this](auto &&e) {
 		if(m_has_image) {
 			auto img{m_history.current_template()};
 			auto parameters{m_history.current_parameters()};
@@ -175,35 +176,35 @@ void MainWindow::create_section(const QString &name, const std::vector<std::pair
 }
 
 /*
-* @brief Create drop-down filter section.
+* @brief Read file names for filter image icons.
 */
- MainWindow::create_filter_section(const QString &name)
+std::vector<std::pair<QString, QString>> MainWindow::read_filter_filenames()
 {
-	/*
-	* @brief Read file names for filter image icons.
-	*/
-	std::vector<std::pair<QString, QString>> read_filter_filenames()
-	{
-		std::vector<std::pair<QString, QString>> filter_filenames;
-		QFile infile(QString(":icons/filter_paths.txt"));
-		infile.open(QIODevice::ReadOnly);
-		if(!infile.isOpen()) {
-			QMessageBox::warning(this, "Warning", "Cannot open filter paths file.");
-			return filter_filenames;
-		}
-
-		QTextStream stream(&infile);
-		QString line{stream.readLine()};
-
-		while(!infile.isNull()) {
-			auto split_line{line.split(QString(","))};
-			filter_filenames.push_back({split_line[0].trimmed(), split_line[1].trimmed()});
-			line = stream.readLine();
-		}
-
+	std::vector<std::pair<QString, QString>> filter_filenames;
+	QFile infile(QString(":icons/filter_paths.txt"));
+	infile.open(QIODevice::ReadOnly);
+	if(!infile.isOpen()) {
+		QMessageBox::warning(this, "Warning", "Cannot open filter paths file.");
 		return filter_filenames;
 	}
 
+	QTextStream stream(&infile);
+	QString line{stream.readLine()};
+
+	while(!line.isNull()) {
+		auto split_line{line.split(QString(","))};
+		filter_filenames.push_back({split_line[0].trimmed(), split_line[1].trimmed()});
+		line = stream.readLine();
+	}
+
+	return filter_filenames;
+}
+
+/*
+* @brief Create drop-down filter section.
+*/
+void MainWindow::create_filter_section(const QString &name)
+{
 	Section *section{new Section(name, 300, this)};
 	m_sections.push_back(section);
 	ui->hlSide->addWidget(section);
@@ -235,7 +236,7 @@ void MainWindow::create_section(const QString &name, const std::vector<std::pair
 			button->setCheckable(true);
 			button->setChecked(false);
 
-			QObject::connect(button, &QPushButton::clicked, [button, b_filter, this](auto &&e) {
+			QObject::connect(button, &QPushButton::clicked, [button, b_filter, filter_buttons, this](auto &&e) {
 				if(m_has_image) {
 					for(auto &&e : filter_buttons) {
 						if(e.first->isChecked() && e.first != button) {
@@ -293,9 +294,9 @@ void MainWindow::create_type_section(const QString &name)
 		button->setToolTip(img_type.second);
 		button->setText(img_type.second);
 
-		QObject::connect(button, &QPushButton::clicked, [b_type, this](auto &&e) {
+		QObject::connect(button, &QPushButton::clicked, [b_type, image_type_buttons, button, this](auto &&e) {
 			if(m_has_image) {
-				for(auto &&e : filter_buttons) {
+				for(auto &&e : image_type_buttons) {
 					if(e.first->isChecked() && e.first != button) {
 						e.first->setChecked(false);
 					}
@@ -334,14 +335,35 @@ void MainWindow::on_action_Open_triggered()
 
 	try {
 		image img(cv::imread(filename.toStdString()));
-		m_history.set_initial(img);
         m_has_image = true;
 
-		for(auto &&e : image_params().adjustment_map) {
+		for(auto &&e : image_parameters().adjustment_map) {
 			m_sliders[e.first]->setSliderPosition(e.second);
 		}
 
-//		update_edges_and_size(current); // TODO
+		auto current_width{m_lb_image->size().width()};
+		auto current_height{m_lb_image->size().height()};
+		image_parameters params;
+
+		params.size = {img.m_img.cols, img.m_img.rows};
+
+		if (img.m_img.cols > current_width) {
+			params.current_left = (img.m_img.cols - current_width)/2;
+			params.current_right = img.m_img.cols - (img.m_img.cols - current_width)/2;
+		} else {
+			params.current_left = 0;
+			params.current_right = img.m_img.cols;
+		}
+
+		if (img.m_img.rows > current_height) {
+			params.current_top = (img.m_img.rows - current_height)/2;
+			params.current_bottom = img.m_img.rows - (img.m_img.rows - current_height)/2;
+		} else {
+			params.current_top = 0;
+			params.current_bottom = img.m_img.rows;
+		}
+
+		m_history.set_initial(img, params);
 		ui->statusBar->showMessage(filename);
 		show_image();
 	} catch (...) {
@@ -512,8 +534,8 @@ void MainWindow::on_action_Resize_triggered()
 		if (dialog.exec() == QDialog::Accepted) {
 			image img{m_history.current_template()};
 			cv::resize(img.m_img, img.m_img, cv::Size(fields[0]->text().toInt(), fields[1]->text().toInt()));
-			m_history.add_entry(img, m_history.current_parameters());
-//			update_edges_and_size(current); // TODO
+			auto params{update_edges_and_size()};
+			m_history.add_entry(img, params);
 			show_image();
 		}
 
@@ -539,7 +561,7 @@ void MainWindow::on_action_Exit_triggered()
 */
 void MainWindow::on_action_Undo_triggered()
 {
-	if (m_has_image) {
+	if (m_has_image && m_history.undoable()) {
 		auto values{m_history.undo().second};
 		for(auto &&e : values.adjustment_map) {
 			m_sliders[e.first]->setSliderPosition(e.second);
@@ -556,7 +578,7 @@ void MainWindow::on_action_Undo_triggered()
 */
 void MainWindow::on_action_Redo_triggered()
 {
-	if (m_has_image) {
+	if (m_has_image && m_history.redoable()) {
 		auto values{m_history.redo().second};
 		for(auto &&e : values.adjustment_map) {
 			m_sliders[e.first]->setSliderPosition(e.second);
@@ -576,15 +598,15 @@ void MainWindow::on_label_moved()
 	if (m_has_image) {
 		auto diff{m_lb_image->get_diff()};
 		auto img{m_history.current_image()};
-		auto params{m_history.current_params()};
+		auto params{m_history.current_parameters()};
 
 		if (params.current_left - diff.first >= 0 &&
-			params.current_right - diff.first <= current.cols) {
+			params.current_right - diff.first <= img.m_img.cols) {
 			params.current_left -= diff.first;
 			params.current_right -= diff.first;
 		}
 		if (params.current_top - diff.second >= 0 &&
-			params.current_bottom - diff.second <= current.rows) {
+			params.current_bottom - diff.second <= img.m_img.rows) {
 			params.current_top -= diff.second;
 			params.current_bottom -= diff.second;
 		}
@@ -594,32 +616,33 @@ void MainWindow::on_label_moved()
 	}
 }
 
-///*
-//* @brief Updates params
-//*/
-//void MainWindow::update_edges_and_size(const cv::Mat& current)
-//{
-//	auto current_width{m_lb_image->size().width()};
-//	auto current_height{m_lb_image->size().height()};
-//
-//	// Updates size of image (Zoom in, Zoom out)
-//	m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].size = {current.cols, current.rows};
-//
-//	// Updates params for slice thats shown on label
-//	if (current.cols > current_width) {
-//		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left = (current.cols - current_width)/2;
-//		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right = current.cols - (current.cols - current_width)/2;
-//	}
-//	else {
-//		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_left = 0;
-//		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_right = current.cols;
-//	}
-//	if (current.rows > current_height) {
-//		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top = (current.rows - current_height)/2;
-//		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom = current.rows - (current.rows - current_height)/2;
-//	}
-//	else {
-//		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_top = 0;
-//		m_image_list[m_image_index].m_param_list[m_image_list[m_image_index].m_index].m_current_bottom = current.rows;
-//	}
-//}
+/*
+* @brief Updates image size and current edges.
+*/
+image_parameters MainWindow::update_edges_and_size() const
+{
+	auto params{m_history.current_parameters()};
+	auto img{m_history.current_template()};
+	auto current_width{m_lb_image->size().width()};
+	auto current_height{m_lb_image->size().height()};
+
+	params.size = {img.m_img.cols, img.m_img.rows};
+
+	if (img.m_img.cols > current_width) {
+		params.current_left = (img.m_img.cols - current_width)/2;
+		params.current_right = img.m_img.cols - (img.m_img.cols - current_width)/2;
+	} else {
+		params.current_left = 0;
+		params.current_right = img.m_img.cols;
+	}
+
+	if (img.m_img.rows > current_height) {
+		params.current_top = (img.m_img.rows - current_height)/2;
+		params.current_bottom = img.m_img.rows - (img.m_img.rows - current_height)/2;
+	} else {
+		params.current_top = 0;
+		params.current_bottom = img.m_img.rows;
+	}
+
+	return params;
+}

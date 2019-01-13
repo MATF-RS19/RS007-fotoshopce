@@ -1,3 +1,5 @@
+#include <QFile>
+
 #include "headers/image_params.h"
 #include "headers/image.h"
 
@@ -159,7 +161,7 @@ image image::set_parameters(image img, image_parameters params)
 /*
 * @brief Applies filter to image.
 */
-void Image::image::apply_filter(cv::Mat &img, int filter)
+void image::image::apply_filter(cv::Mat &img, int filter)
 {
 	cv::cvtColor(img, img, cv::COLOR_RGB2GRAY);
 	cv::applyColorMap(img, img, filter);

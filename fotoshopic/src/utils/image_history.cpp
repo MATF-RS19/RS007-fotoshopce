@@ -14,10 +14,10 @@ namespace rs::utils
 	/*
 	* @brief Sets initial image.
 	*/
-	void image_history::set_initial(const image &img)
+	void image_history::set_initial(const image &img, const image_parameters &params)
 	{
 		m_entries.clear();
-		m_entries.push_back({img, image_parameters()});
+		m_entries.push_back({img, params});
 		m_position = 0;
 	}
 

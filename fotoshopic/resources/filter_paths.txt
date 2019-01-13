@@ -1,0 +1,12 @@
+:/icons/icons/filters/autumn.png,Autumn
+:/icons/icons/filters/bone.png,Bone
+:/icons/icons/filters/jet.png,Jet
+:/icons/icons/filters/winter.png,Winter
+:/icons/icons/filters/rainbow.png,Rainbow
+:/icons/icons/filters/ocean.png,Ocean
+:/icons/icons/filters/summer.png,Summer
+:/icons/icons/filters/spring.png,Spring
+:/icons/icons/filters/cool.png,Cool
+:/icons/icons/filters/hsv.png,HSV
+:/icons/icons/filters/pink.png,Pink
+:/icons/icons/filters/hot.png,Hot

@@ -44,7 +44,7 @@ class MainWindow : public QMainWindow
 	/* Public member functions */
 	public:
 		explicit MainWindow(QWidget *parent = nullptr);
-		~MainWindow();
+		~MainWindow() override;
 
 	/* Private slots */
 	private slots:
@@ -74,9 +74,11 @@ class MainWindow : public QMainWindow
 		void save_image(const std::string& fileName);
 		void slider_operation(QSlider *slider, const QString &name, int value = 50);
 		void create_section(const QString &name, const std::vector<std::pair<QString, int>> &contents);
+		std::vector<std::pair<QString, QString>> read_filter_filenames();
 		void create_filter_section(const QString &name);
 		void create_type_section(const QString &name);
 		void sync_sections();
+		image_parameters update_edges_and_size() const;
 
 	/* Private variables */
 	private:

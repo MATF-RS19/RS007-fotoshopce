@@ -4,18 +4,29 @@
         <file>icons/rotate_left.png</file>
         <file>icons/rotate_right.png</file>
         <file>icons/delete.png</file>
-        <file>icons/draw.png</file>
         <file>icons/exit.png</file>
         <file>icons/mirror.png</file>
         <file>icons/open.png</file>
         <file>icons/redo.png</file>
         <file>icons/resize.png</file>
         <file>icons/save.png</file>
-        <file>icons/text.png</file>
         <file>icons/undo.png</file>
         <file>icons/zoom.png</file>
         <file>icons/zoom_out.png</file>
+	<file>icons/filters/autumn.png</file>
+	<file>icons/filters/bone.png</file>
+	<file>icons/filters/cool.png</file>
+	<file>icons/filters/hot.png</file>
+	<file>icons/filters/hsv.png</file>
+	<file>icons/filters/jet.png</file>
+	<file>icons/filters/ocean.png</file>
+	<file>icons/filters/pink.png</file>
+	<file>icons/filters/rainbow.png</file>
+	<file>icons/filters/spring.png</file>
+	<file>icons/filters/summer.png</file>
+	<file>icons/filters/winter.png</file>
 	<file>QTDark.stylesheet</file>
+	<file>filter_paths.txt</file>
     </qresource>
     
 </RCC>
