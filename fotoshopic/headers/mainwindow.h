@@ -20,6 +20,8 @@
 #include <QDialogButtonBox>
 #include <QButtonGroup>
 #include <QRadioButton>
+#include <QResizeEvent>
+#include <QTextStream>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -29,11 +31,9 @@
 #include "image_params.h"
 #include "section.h"
 #include "utils.h"
+#include "mouse_label.h"
 #include "utils/image_history.hpp"
-//#include "edit_operations.h"
 
-//template <typename T>
-//using qstring_map = std::unordered_map<QString, T>;
 
 namespace Ui { class MainWindow; }
 
@@ -50,8 +50,6 @@ class MainWindow : public QMainWindow
 	private slots:
 		void on_action_ZoomIn_triggered();
 		void on_action_ZoomOut_triggered();
-		void on_btRGB_triggered();
-		void on_btGray_triggered();
 		void on_action_Mirror_triggered();
 		void on_action_Open_triggered();
 		void on_action_Save_triggered();
@@ -64,23 +62,33 @@ class MainWindow : public QMainWindow
         void on_action_Undo_triggered();
         void on_action_Redo_triggered();
 		void on_action_Crop_triggered();
+		void on_label_moved();
 
-	/* Private member functions */
+	protected:
+		// Overrides resizing of window callback
+		void resizeEvent(QResizeEvent* event) override;
+
+	// Private member functions
 	private:
 		void show_image();
 		void save_image(const std::string& fileName);
 		void slider_operation(QSlider *slider, const QString &name, int value = 50);
 		void create_section(const QString &name, const std::vector<std::pair<QString, int>> &contents);
+		void create_filter_section(const QString &name);
+		void create_type_section(const QString &name);
 		void sync_sections();
 
 	/* Private variables */
 	private:
 		Ui::MainWindow *ui;
-		QLabel* m_lb_image;
+		MouseLabel* m_lb_image;
 		bool m_has_image;
 		rs::utils::image_history m_history;
 		std::vector<Section*> m_sections;
 		qstring_map<QSlider*> m_sliders;
+		std::vector<std::pair<QPushButton*, filters>> m_filter_buttons;
+		std::vector<std::pair<QPushButton*, image_type>> m_image_type_buttons;
+		std::vector<std::pair<QString, QString>> m_filter_filenames;
 		std::string m_filename;
 };
 

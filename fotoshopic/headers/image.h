@@ -16,35 +16,26 @@
 /* Forward declarations */
 class MainWindow;
 
-
-/*
-* @brief Enum class representing image type.
-*/
-enum class image_type
-{
-	color,
-	grayscale,
-};
-
-
 /*
 * @brief Class representing an OpenCV image with utility parameters.
 */
 class image
 {
-	// Friend declarations
+	/* Friend declarations */
 	friend MainWindow;
 
-	// Public member functions
+	/* Public member functions */
 	public:
 		explicit image(const cv::Mat& img = cv::Mat());
 		image(const image &img);
 		~image();
 
 		static image set_parameters(image img, image_parameters params);
-	// Private member variables
+
+	/* Private member functions */
+		static void apply_filter(cv::Mat &img, int filter);
+
+	/* Private member variables */
 	private:
 		cv::Mat m_img;
-		image_type m_type;
-		unsigned long m_index;
 };

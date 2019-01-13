@@ -6,17 +6,13 @@
 * @brief Builds instance of Image.
 */
 image::image(const cv::Mat& img)
-	:	m_img(img),
-		m_type{image_type::color},
-		m_index{0}
+	:	m_img(img)
 {}
 
 /*
 * @brief Copies instance of Image.
 */
 image::image(const image &img)
-	:	m_type{img.m_type},
-		m_index{img.m_index}
 {
 	img.m_img.copyTo(m_img);
 }
@@ -33,56 +29,60 @@ image::~image() { m_img.release(); }
 // TODO: Refactor function [@stefanpantic]
 image image::set_parameters(image img, image_parameters params)
 {
-	cv::Mat new_image;
-	img.m_img.copyTo(new_image);
+	// Resizes image into correct size
+	int width{params.size.first};
+	int height{params.size.second};
+	cv::resize(img.m_img, img.m_img, cv::Size(width, height));
 
-	int brightness{params.adjustment_map[QString::fromStdString("Brightness")]};
-	int contrast{params.adjustment_map[QString::fromStdString("Contrast")]};
-	int blur{params.adjustment_map[QString::fromStdString("Blur")]};
-	int sharpen{params.adjustment_map[QString::fromStdString("Sharpen")]};
-	int vignette{params.adjustment_map[QString::fromStdString("Vignette")]};
+	int brightness{params.adjustment_map[QString::fromStdString("Brightness")]},
+		contrast{params.adjustment_map[QString::fromStdString("Contrast")]},
+		saturation{params.adjustment_map[QString::fromStdString("Saturation")]},
+		blur{params.adjustment_map[QString::fromStdString("Blur")]},
+		sharpen{params.adjustment_map[QString::fromStdString("Sharpen")]},
+		vignette{params.adjustment_map[QString::fromStdString("Vignette")]},
+		hue{params.adjustment_map[QString::fromStdString("Hue")]},
+		value{params.adjustment_map[QString::fromStdString("Value")]};
 
-	// Set the brightness value
-	double brightness_value{brightness - 50.0};
+	// Set brightness
+	double brightness_v{brightness - 50.0};
+	cv::add(img.m_img, cv::Scalar(brightness_v, brightness_v, brightness_v), img.m_img);
 
-	// Setting the image brightness
-	cv::add(new_image, cv::Scalar(brightness_value, brightness_value, brightness_value), new_image);
-
-	// Set the contrast value
-	double contrast_value{contrast / 50.0};
-
-	// Setting the image contrast
-	cv::multiply(new_image, cv::Scalar(contrast_value, contrast_value, contrast_value), new_image);
-
+	// Set contrast
+	double contrast_v{contrast / 50.0};
+	cv::multiply(img.m_img, cv::Scalar(contrast_v, contrast_v, contrast_v), img.m_img);
 
 	// Setting the image blur value if it changed
 	if(blur) {
-		cv::GaussianBlur(new_image, new_image, cv::Size(11, 11), blur);
-		cv::addWeighted(new_image, 2.5, new_image, -1.5, 0, new_image);
+		cv::GaussianBlur(img.m_img, img.m_img, cv::Size(11, 11), blur / 25.0);
+		cv::addWeighted(img.m_img, 2.5, img.m_img, -1.5, 0, img.m_img);
 	}
 
 	// Setting the image sharpness value if it changed
 	if(sharpen) {
 		cv::Mat gaussian;
-		cv::GaussianBlur(new_image, gaussian, cv::Size(11, 11), sharpen);
-		cv::addWeighted(new_image, 1.5, gaussian, -0.5, 0, new_image);
+		cv::GaussianBlur(img.m_img, gaussian, cv::Size(11, 11), sharpen);
+		cv::addWeighted(img.m_img, 1.5, gaussian, -0.5, 0, img.m_img);
 	}
 
-	// Adjusting vignette effect to the image if needed
+	// Adjusting vignette effect to the image if needed (HACK)
 	if(vignette) {
-		double cols{static_cast<double>(new_image.cols / 2)}, rows{static_cast<double>(new_image.rows / 2)};
-		double max_dis{(1.7 - (1.3 / 99 * (vignette - 99) + 1.5)) * std::sqrt(cols * cols + rows * rows)}, temp;
+		QFile file(":/images/images/gaussian_filter.png");
+		cv::Mat gaussian_filter;
 
-		for (int i = 0; i < new_image.rows; ++i) {
-			for (int j = 0; j < new_image.cols; ++j) {
-				double dist{std::sqrt(std::pow((cols - j), 2) + std::pow((rows - i), 2))};
-				temp = std::cos(dist / max_dis);
-				temp *= temp;
-				new_image.at<cv::Vec3b>(i, j)[0] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[0]) * temp);
-				new_image.at<cv::Vec3b>(i, j)[1] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[1]) * temp);
-				new_image.at<cv::Vec3b>(i, j)[2] = cv::saturate_cast<uchar>((new_image.at<cv::Vec3b>(i, j)[2]) * temp);
-			}
+		if(file.open(QIODevice::ReadOnly)){
+			qint64 size(file.size());
+			std::vector<uchar> buf(static_cast<size_t>(size));
+			file.read((char*)buf.data(), size);
+			gaussian_filter = imdecode(buf, cv::IMREAD_COLOR);
 		}
+
+		cv::resize(gaussian_filter, gaussian_filter, cv::Size(img.m_img.cols, img.m_img.rows));
+		cv::add(gaussian_filter, cv::Scalar(150 - vignette * 2.0, 150 - vignette * 2.0, 150 - vignette * 2.0), gaussian_filter);
+		gaussian_filter.convertTo(gaussian_filter, CV_32FC3);
+		img.m_img.convertTo(img.m_img, CV_32FC3);
+		cv::multiply(gaussian_filter, cv::Scalar(1 / 255.0, 1 / 255.0, 1 / 255.0), gaussian_filter);
+		cv::multiply(gaussian_filter, img.m_img, img.m_img);
+		img.m_img.convertTo(img.m_img, CV_8UC3);
 	}
 
 	// Apply filter
@@ -91,43 +91,76 @@ image image::set_parameters(image img, image_parameters params)
 		case filters::none:
 			break;
 		case filters::autumn:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_AUTUMN);
+			image::apply_filter(img.m_img, cv::COLORMAP_AUTUMN);
 			break;
 		case filters::bone:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_BONE);
+			image::apply_filter(img.m_img, cv::COLORMAP_BONE);
 			break;
 		case filters::jet:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_JET);
+			image::apply_filter(img.m_img, cv::COLORMAP_JET);
 			break;
 		case filters::winter:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_WINTER);
+			image::apply_filter(img.m_img, cv::COLORMAP_WINTER);
 			break;
 		case filters::rainbow:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_RAINBOW);
+			image::apply_filter(img.m_img, cv::COLORMAP_RAINBOW);
 			break;
 		case filters::ocean:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_OCEAN);
+			image::apply_filter(img.m_img, cv::COLORMAP_OCEAN);
 			break;
 		case filters::summer:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_SUMMER);
+			image::apply_filter(img.m_img, cv::COLORMAP_SUMMER);
 			break;
 		case filters::spring:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_SPRING);
+			image::apply_filter(img.m_img, cv::COLORMAP_SPRING);
 			break;
 		case filters::cool:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_COOL);
+			image::apply_filter(img.m_img, cv::COLORMAP_COOL);
 			break;
 		case filters::hsv:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_HSV);
+			image::apply_filter(img.m_img, cv::COLORMAP_HSV);
 			break;
 		case filters::pink:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_PINK);
+			image::apply_filter(img.m_img, cv::COLORMAP_PINK);
 			break;
 		case filters::hot:
-			cv::cvtColor(new_image, new_image, cv::COLORMAP_HOT);
+			image::apply_filter(img.m_img, cv::COLORMAP_HOT);
 			break;
 	}
 
+	switch (params.img_type)
+	{
+		case image_type::grayscale:
+			cv::cvtColor(img.m_img, img.m_img, cv::COLOR_RGB2GRAY);
+			break;
+		case image_type::color:
+			break;
+	}
 
-	return image(new_image);
+	// Set the hue value
+	double hue_v{hue / 50.0};
+
+	// Set the saturation value
+	double saturation_v{saturation / 50.0};
+
+	// Set the value value
+	double value_v{value / 50.0};
+
+	// Adjust image color settings needed
+	if(hue_v != 1.0 || saturation_v != 1.0 || value_v != 1.0) {
+		cv::cvtColor(img.m_img, img.m_img, cv::COLOR_RGB2HSV);
+		cv::multiply(img.m_img, cv::Scalar(hue_v, saturation_v, value_v), img.m_img);
+		cv::cvtColor(img.m_img, img.m_img, cv::COLOR_HSV2RGB);
+	}
+
+	return img;
+}
+
+/*
+* @brief Applies filter to image.
+*/
+void Image::image::apply_filter(cv::Mat &img, int filter)
+{
+	cv::cvtColor(img, img, cv::COLOR_RGB2GRAY);
+	cv::applyColorMap(img, img, filter);
 }
