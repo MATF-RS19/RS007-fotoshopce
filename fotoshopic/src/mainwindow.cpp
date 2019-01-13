@@ -84,7 +84,7 @@ void MainWindow::show_image()
 					   params.current_bottom - params.current_top);
 		cv::Mat cropped{img.m_img(myROI)};
 		cv::cvtColor(cropped, cropped, cv::COLOR_BGR2RGB);
-		m_lb_image->setPixmap(QPixmap::fromImage(QImage(img.m_img.data, img.m_img.cols, img.m_img.rows, int(img.m_img.step), QImage::Format_RGB888)));
+		m_lb_image->setPixmap(QPixmap::fromImage(QImage(cropped.data, cropped.cols, cropped.rows, int(cropped.step), QImage::Format_RGB888)));
 	} else {
 		m_lb_image->clear();
 	}
