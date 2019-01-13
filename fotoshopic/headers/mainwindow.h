@@ -32,11 +32,8 @@
 #include "section.h"
 #include "utils.h"
 #include "mouse_label.h"
+#include "utils/image_history.hpp"
 
-//#include "edit_operations.h"
-
-//template <typename T>
-//using qstring_map = std::unordered_map<QString, T>;
 
 namespace Ui { class MainWindow; }
 
@@ -44,11 +41,12 @@ class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 
-	// Public member functions
+	/* Public member functions */
 	public:
 		explicit MainWindow(QWidget *parent = nullptr);
-		~MainWindow();
-	// Private slots
+		~MainWindow() override;
+
+	/* Private slots */
 	private slots:
 		void on_action_ZoomIn_triggered();
 		void on_action_ZoomOut_triggered();
@@ -74,33 +72,25 @@ class MainWindow : public QMainWindow
 	private:
 		void show_image();
 		void save_image(const std::string& fileName);
-		void capture_sliders(const qstring_map<QSlider*> sliders);
-		void slider_operation(qstring_map<QSlider*> sliders, const QString &key, int value = 50);
-		qstring_map<QSlider*> create_section(QString name, const std::vector<QString> &contents);
-		std::pair<qstring_map<QSlider*>, QButtonGroup*> create_section(QString name, const std::vector<QString> &contents, int buttons, bool select_one = true);
-		std::vector<std::pair<QPushButton*, filters>> create_section(QString name);
-		std::vector<std::pair<QPushButton*, image_type>> create_type_section(QString name);
+		void slider_operation(QSlider *slider, const QString &name, int value = 50);
+		void create_section(const QString &name, const std::vector<std::pair<QString, int>> &contents);
 		std::vector<std::pair<QString, QString>> read_filter_filenames();
-		// Makes redo impossible after operation
-		void delete_after_redo();
-		// Fixes shown part of image when zoomed
-		void update_edges_and_size(const cv::Mat& current);
-		// Grouping updates
-		void update_params(const ImageParams& params);
-	// Private variables
+		void create_filter_section(const QString &name);
+		void create_type_section(const QString &name);
+		void sync_sections();
+		image_parameters update_edges_and_size() const;
+
+	/* Private variables */
 	private:
-		// Define the image
 		Ui::MainWindow *ui;
 		MouseLabel* m_lb_image;
-		Image m_img;
 		bool m_has_image;
+		rs::utils::image_history m_history;
 		std::vector<Section*> m_sections;
-		std::vector<Image> m_image_list;
 		qstring_map<QSlider*> m_sliders;
-		unsigned long m_image_index, m_slider_index;
-		std::vector<qstring_map<int>> m_slider_values;
 		std::vector<std::pair<QPushButton*, filters>> m_filter_buttons;
 		std::vector<std::pair<QPushButton*, image_type>> m_image_type_buttons;
 		std::vector<std::pair<QString, QString>> m_filter_filenames;
+		std::string m_filename;
 };
 

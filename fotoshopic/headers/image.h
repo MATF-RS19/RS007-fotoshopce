@@ -3,9 +3,6 @@
 
 #include <iostream>
 #include <vector>
-
-#include <QFile>
-
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
@@ -22,26 +19,23 @@ class MainWindow;
 /*
 * @brief Class representing an OpenCV image with utility parameters.
 */
-class Image
+class image
 {
-	// Friend declarations
+	/* Friend declarations */
 	friend MainWindow;
 
-	// Public member functions
+	/* Public member functions */
 	public:
-		explicit Image(const cv::Mat& img = cv::Mat(), std::string filename = "");
-		~Image();
+		explicit image(const cv::Mat& img = cv::Mat());
+		image(const image &img);
+		~image();
 
-	// Private member functions
-	private:
-		cv::Mat get_current();
-		void get_orientation(cv::Mat& new_image);
-		void apply_filter(cv::Mat &img, int filter);
+		static image set_parameters(image img, image_parameters params);
 
-	// Private member variables
+	/* Private member functions */
+		static void apply_filter(cv::Mat &img, int filter);
+
+	/* Private member variables */
 	private:
 		cv::Mat m_img;
-		std::string m_filename;
-		std::vector<ImageParams> m_param_list;
-		unsigned long m_index;
 };

@@ -29,18 +29,21 @@ QMAKE_CXXFLAGS += -std=c++17
 INCLUDEPATH += /usr/local/include/opencv4
 LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc -lopencv_dnn
 
-SOURCES += src/image.cpp \
-           src/main.cpp \
-           src/mainwindow.cpp \
-           src/section.cpp \
-           src/mouse_label.cpp
+SOURCES += ./src/image.cpp \
+           ./src/main.cpp \
+           ./src/mainwindow.cpp \
+           ./src/section.cpp \
+           ./src/utils/image_history.cpp \
+           ./src/mouse_label.cpp
 
-HEADERS += headers/image.h \
-           headers/mainwindow.h \
-           headers/section.h \		  
-           headers/utils.h \
-           headers/image_params.h \
-           headers/mouse_label.h
+HEADERS += ./headers/image.h \
+           ./headers/mainwindow.h \
+           ./headers/section.h \
+           ./headers/utils.h \
+           ./headers/image_params.h \
+           ./headers/utils/image_history.hpp \
+           ./headers/mouse_label.h
+
 
 FORMS += forms/mainwindow.ui
 
