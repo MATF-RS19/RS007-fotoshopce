@@ -57,7 +57,7 @@ MainWindow::~MainWindow()
 }
 
 /*
-* @brief Updates params when window is resized.
+* @brief Updates parameters when window is resized.
 */
 void MainWindow::resizeEvent(QResizeEvent*) {
 	if (m_has_image) {
