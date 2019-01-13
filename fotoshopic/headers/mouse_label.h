@@ -1,15 +1,15 @@
 #pragma once
 
-#include <iostream>
 
+#include <iostream>
 #include <QLabel>
 #include <QMouseEvent>
+
 
 class MouseLabel: public QLabel {
 	Q_OBJECT
 	public:
-		explicit MouseLabel(QWidget* parent = Q_NULLPTR, Qt::WindowFlags f = Qt::WindowFlags());
-		~MouseLabel();
+		explicit MouseLabel(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 		std::pair<int, int> get_previous();
 		std::pair<int, int> get_diff();
 
