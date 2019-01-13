@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->hlSide->setAlignment(Qt::AlignTop);
 
 	// Create photo adjustment sliders
-	create_section("Basic settings", {{"Brightness", 50}, {"Contrast", 50}, {"Saturation", 50}});
+	create_section("Basic settings", {{"Brightness", 50}, {"Contrast", 50}});
 	create_section("Advanced settings", {{"Sharpen", 0}, {"Vignette", 0}, {"Blur", 0}});
 	create_section("Color settings", {{"Hue", 50}, {"Saturation", 50}, {"Value", 50}});
 	create_filter_section("Filters");
