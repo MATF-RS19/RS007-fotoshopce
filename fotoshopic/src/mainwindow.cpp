@@ -443,7 +443,7 @@ void MainWindow::on_action_Mirror_triggered()
 		m_history.add_entry(img, m_history.current_parameters());
 		show_image();
 	} else {
-		QMessageBox::warning(this, "Warning", "Image not loaded");
+		QMessageBox::warning(this, "Warning", "Image not loaded.");
 	}
 }
 
@@ -458,7 +458,7 @@ void MainWindow::on_action_Rotate_left_triggered()
 		m_history.add_entry(img, m_history.current_parameters());
 		show_image();
     } else {
-        QMessageBox::warning(this, "Warning", "Image not loaded");
+		QMessageBox::warning(this, "Warning", "Image not loaded.");
     }
 }
 
@@ -473,7 +473,7 @@ void MainWindow::on_action_Rotate_right_triggered()
 		m_history.add_entry(img, m_history.current_parameters());
 		show_image();
     } else {
-        QMessageBox::warning(this, "Warning", "Image not loaded");
+		QMessageBox::warning(this, "Warning", "Image not loaded.");
     }
 }
 
@@ -490,7 +490,7 @@ void MainWindow::on_action_Delete_triggered()
 			show_image();
 		}
 	} else {
-		QMessageBox::warning(this, "Warning", "Nothing to delete");
+		QMessageBox::warning(this, "Warning", "Nothing to delete.");
 	}
 }
 
@@ -500,7 +500,7 @@ void MainWindow::on_action_Crop_triggered()
 	if (m_has_image) {
 
 	} else {
-		QMessageBox::warning(this, "Warning", "Nothing to crop");
+		QMessageBox::warning(this, "Warning", "Nothing to crop.");
 	}
 }
 
@@ -542,7 +542,7 @@ void MainWindow::on_action_Resize_triggered()
 		}
 
 	} else {
-        QMessageBox::warning(this, "Warning", "Cannot resize image");
+		QMessageBox::warning(this, "Warning", "Cannot resize image.");
 	}
 }
 
@@ -571,7 +571,7 @@ void MainWindow::on_action_Undo_triggered()
 
 		show_image();
 	} else {
-		QMessageBox::warning(this, "Warning", "Nothing to undo");
+		QMessageBox::warning(this, "Warning", "Nothing to undo.");
 	}
 }
 
@@ -588,7 +588,7 @@ void MainWindow::on_action_Redo_triggered()
 
 		show_image();
 	} else {
-		QMessageBox::warning(this, "Warning", "Nothing to redo");
+		QMessageBox::warning(this, "Warning", "Nothing to redo.");
 	}
 }
 
@@ -607,6 +607,7 @@ void MainWindow::on_label_moved()
 			params.current_left -= diff.first;
 			params.current_right -= diff.first;
 		}
+
 		if (params.current_top - diff.second >= 0 &&
 			params.current_bottom - diff.second <= img.m_img.rows) {
 			params.current_top -= diff.second;
