@@ -322,49 +322,53 @@ void MainWindow::create_type_section(const QString &name)
 */
 void MainWindow::on_action_Open_triggered()
 {
-    if(m_has_image) {
-        auto reply{QMessageBox::question(this, "Warning", "All unsaved changes will be lost. Do you wish to proceed?", QMessageBox::Yes | QMessageBox::No)};
-        if(QMessageBox::No == reply) {
-            return;
-        }
-    }
-
+	if(m_has_image) {
+		auto reply{QMessageBox::question(this, "Warning", "All unsaved changes will be lost. Do you wish to proceed?", QMessageBox::Yes | QMessageBox::No)};
+		if(QMessageBox::No == reply) {
+			return;
+		}
+	}
 	QString filename{QFileDialog::getOpenFileName(this, "Open file.")};
 	m_filename = filename.toStdString();
 
 	try {
 		image img(cv::imread(filename.toStdString()));
-        m_has_image = true;
+		if (img.m_img.rows != 0 && img.m_img.cols != 0) {
+			m_has_image = true;
 
-		for(auto &&e : image_parameters().adjustment_map) {
-			m_sliders[e.first]->setSliderPosition(e.second);
+			for(auto &&e : image_parameters().adjustment_map) {
+				m_sliders[e.first]->setSliderPosition(e.second);
+			}
+
+			auto current_width{m_lb_image->size().width()};
+			auto current_height{m_lb_image->size().height()};
+			image_parameters params;
+
+			params.size = {img.m_img.cols, img.m_img.rows};
+
+			if (img.m_img.cols > current_width) {
+				params.current_left = (img.m_img.cols - current_width)/2;
+				params.current_right = img.m_img.cols - (img.m_img.cols - current_width)/2;
+			} else {
+				params.current_left = 0;
+				params.current_right = img.m_img.cols;
+			}
+
+			if (img.m_img.rows > current_height) {
+				params.current_top = (img.m_img.rows - current_height)/2;
+				params.current_bottom = img.m_img.rows - (img.m_img.rows - current_height)/2;
+			} else {
+				params.current_top = 0;
+				params.current_bottom = img.m_img.rows;
+			}
+
+			m_history.set_initial(img, params);
+			ui->statusBar->showMessage(filename);
+			show_image();
 		}
-
-		auto current_width{m_lb_image->size().width()};
-		auto current_height{m_lb_image->size().height()};
-		image_parameters params;
-
-		params.size = {img.m_img.cols, img.m_img.rows};
-
-		if (img.m_img.cols > current_width) {
-			params.current_left = (img.m_img.cols - current_width)/2;
-			params.current_right = img.m_img.cols - (img.m_img.cols - current_width)/2;
-		} else {
-			params.current_left = 0;
-			params.current_right = img.m_img.cols;
+		else {
+			throw std::invalid_argument("");
 		}
-
-		if (img.m_img.rows > current_height) {
-			params.current_top = (img.m_img.rows - current_height)/2;
-			params.current_bottom = img.m_img.rows - (img.m_img.rows - current_height)/2;
-		} else {
-			params.current_top = 0;
-			params.current_bottom = img.m_img.rows;
-		}
-
-		m_history.set_initial(img, params);
-		ui->statusBar->showMessage(filename);
-		show_image();
 	} catch (...) {
 		QMessageBox::warning(this, "Warning", "Cannot open file." + filename);
 	}
@@ -491,14 +495,14 @@ void MainWindow::on_action_Mirror_triggered()
 */
 void MainWindow::on_action_Rotate_left_triggered()
 {
-    if (m_has_image) {
+	if (m_has_image) {
 		image img(m_history.current_template());
 		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_COUNTERCLOCKWISE);
 		m_history.add_entry(img, m_history.current_parameters());
 		show_image();
-    } else {
+	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded.");
-    }
+	}
 }
 
 /*
@@ -506,14 +510,14 @@ void MainWindow::on_action_Rotate_left_triggered()
 */
 void MainWindow::on_action_Rotate_right_triggered()
 {
-    if (m_has_image) {
+	if (m_has_image) {
 		image img(m_history.current_template());
 		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_CLOCKWISE);
 		m_history.add_entry(img, m_history.current_parameters());
 		show_image();
-    } else {
+	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded.");
-    }
+	}
 }
 
 /*

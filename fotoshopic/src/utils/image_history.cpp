@@ -26,12 +26,12 @@ namespace rs::utils
 	*/
 	void image_history::add_entry(const image &img, const image_parameters &params)
 	{
+		if(m_position + 1 != int(m_entries.size())) {
+			m_entries.erase(m_entries.begin() + int(m_position) + 1, m_entries.end());
+		}
+
 		m_entries.push_back({img, params});
 		m_position += 1;
-
-		if(m_position + 1 != int(m_entries.size())) {
-			m_entries.erase(m_entries.begin() + int(m_position), m_entries.end());
-		}
 	}
 
 	/*

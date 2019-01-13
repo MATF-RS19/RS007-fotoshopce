@@ -24,7 +24,7 @@ namespace rs::utils
 			inline const image &current_template() const { return m_entries[m_position].first; }
 			inline const image_parameters &current_parameters() const { return m_entries[m_position].second; }
 			inline bool undoable() const { return m_position > 0; }
-			inline bool redoable() const { return m_position + 1< int(m_entries.size()); }
+			inline bool redoable() const { return m_position + 1 < int(m_entries.size()); }
 
 			void set_initial(const image &img, const image_parameters &params);
 			void add_entry(const image &img, const image_parameters &params = image_parameters());
