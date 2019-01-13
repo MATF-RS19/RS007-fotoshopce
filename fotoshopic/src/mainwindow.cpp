@@ -294,7 +294,7 @@ void MainWindow::create_type_section(const QString &name)
 		button->setToolTip(img_type.second);
 		button->setText(img_type.second);
 
-		QObject::connect(button, &QPushButton::clicked, [b_type, image_type_buttons, button, this](auto &&e) {
+		QObject::connect(button, &QPushButton::clicked, [b_type, image_type_buttons, button, this](...) {
 			if(m_has_image) {
 				for(auto &&e : image_type_buttons) {
 					if(e.first->isChecked() && e.first != button) {
@@ -304,7 +304,7 @@ void MainWindow::create_type_section(const QString &name)
 
 				auto img{m_history.current_template()};
 				auto params{m_history.current_parameters()};
-				params.img_type = e ? b_type : image_type::color;
+				params.img_type = b_type;
 				m_history.add_entry(img, params);
 				show_image();
 			} else {
