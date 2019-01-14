@@ -496,9 +496,13 @@ void MainWindow::on_action_Mirror_triggered()
 void MainWindow::on_action_Rotate_left_triggered()
 {
 	if (m_has_image) {
-		image img(m_history.current_template());
+		auto img(m_history.current_template());
+		auto params{m_history.current_parameters()};
+		std::swap(params.current_top, params.current_left);
+		std::swap(params.current_bottom, params.current_right);
+		std::swap(params.size.first, params.size.second);
 		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_COUNTERCLOCKWISE);
-		m_history.add_entry(img, m_history.current_parameters());
+		m_history.add_entry(img, params);
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded.");
@@ -511,9 +515,13 @@ void MainWindow::on_action_Rotate_left_triggered()
 void MainWindow::on_action_Rotate_right_triggered()
 {
 	if (m_has_image) {
-		image img(m_history.current_template());
+		auto img(m_history.current_template());
+		auto params{m_history.current_parameters()};
+		std::swap(params.current_top, params.current_left);
+		std::swap(params.current_bottom, params.current_right);
+		std::swap(params.size.first, params.size.second);
 		cv::rotate(img.m_img, img.m_img, cv::ROTATE_90_CLOCKWISE);
-		m_history.add_entry(img, m_history.current_parameters());
+		m_history.add_entry(img, params);
 		show_image();
 	} else {
 		QMessageBox::warning(this, "Warning", "Image not loaded.");
