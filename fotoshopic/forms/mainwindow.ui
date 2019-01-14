@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
-    <height>650</height>
+    <width>1002</width>
+    <height>652</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -44,14 +44,19 @@
      </widget>
     </item>
     <item row="0" column="1">
-     <layout class="QVBoxLayout" name="hlSide">
-      <property name="spacing">
-       <number>0</number>
+     <widget class="QWidget" name="side_widget" native="true">
+      <property name="maximumSize">
+       <size>
+        <width>350</width>
+        <height>16777215</height>
+       </size>
       </property>
-      <property name="sizeConstraint">
-       <enum>QLayout::SetMaximumSize</enum>
-      </property>
-     </layout>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QVBoxLayout" name="side_pannel"/>
+       </item>
+      </layout>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -60,8 +65,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1000</width>
-     <height>22</height>
+     <width>1002</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

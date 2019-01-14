@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->mainContainer->setLayout(main_layout);
 
 	// Set side panel alignment
-	ui->hlSide->setAlignment(Qt::AlignTop);
+	ui->side_pannel->setAlignment(Qt::AlignTop);
 
 	// Create photo adjustment sliders
 	create_section("Basic settings", {{"Brightness", 50}, {"Contrast", 50}});
@@ -160,7 +160,7 @@ void MainWindow::create_section(const QString &name, const std::vector<std::pair
 {
 	auto *section{new Section(name, 300, this)};
 	m_sections.push_back(section);
-	ui->hlSide->addWidget(section);
+	ui->side_pannel->addWidget(section);
 
 	auto *vbox{new QVBoxLayout()};
 
@@ -207,7 +207,7 @@ void MainWindow::create_filter_section(const QString &name)
 {
 	Section *section{new Section(name, 300, this)};
 	m_sections.push_back(section);
-	ui->hlSide->addWidget(section);
+	ui->side_pannel->addWidget(section);
 
 	auto *vbox{new QVBoxLayout};
 	vbox->setAlignment(Qt::AlignTop);
@@ -274,7 +274,7 @@ void MainWindow::create_type_section(const QString &name)
 {
 	Section *section{new Section(name, 300, this)};
 	m_sections.push_back(section);
-	ui->hlSide->addWidget(section);
+	ui->side_pannel->addWidget(section);
 
 	auto *vbox{new QVBoxLayout};
 	vbox->setAlignment(Qt::AlignTop);
