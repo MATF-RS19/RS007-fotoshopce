@@ -2,7 +2,7 @@
 An application for photo manipulation with some cool ML features like face detection and Neural Style Transfer.
 
 ## :information_source: About:
-An application for photo manipulation. You can do some basic photo edits like cropping, changing image resolution, image rotation, etc. Along with these, more advanced features are available, like changing the brightness, contrast, highlights, sharpeness, and similar. Fine color manipulation is also implemented such as saturation, temperature, and individual color changing. Apart from standard alogirthm based image manipulations, we've also added some ML based image tweaks like Neural Style Transfer, Deep Dream, and face detecion.
+An application for photo manipulation. You can do some basic photo edits like cropping, changing image resolution, image rotation, etc. Along with these, more advanced features are available, like changing the brightness, contrast, highlights, sharpeness, and similar. Fine color manipulation is also implemented such as saturation, temperature, and individual color changing.
 
 ## :bookmark_tabs: Requirements:
  * ```clang++ [c++17] 6.0.1```
