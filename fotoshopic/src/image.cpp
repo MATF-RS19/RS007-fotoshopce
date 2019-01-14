@@ -75,7 +75,7 @@ image image::set_parameters(image img, image_parameters params)
 			qint64 size(file.size());
 			std::vector<uchar> buf(static_cast<size_t>(size));
 			file.read((char*)buf.data(), size);
-			gaussian_filter = imdecode(buf, cv::IMREAD_COLOR);
+			gaussian_filter = cv::imdecode(buf, cv::IMREAD_COLOR);
 		}
 
 		cv::resize(gaussian_filter, gaussian_filter, cv::Size(img.m_img.cols, img.m_img.rows));
