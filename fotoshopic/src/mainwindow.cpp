@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
 		m_has_image{false}
 {
 	ui->setupUi(this);
+	setWindowTitle("Fotoshopic");
 
 	// Connects mouse move event on label to slot here
 	// TODO: New system
