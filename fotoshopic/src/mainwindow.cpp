@@ -63,8 +63,7 @@ MainWindow::~MainWindow()
 void MainWindow::resizeEvent(QResizeEvent*) {
 	if (m_has_image) {
 		auto params{update_edges_and_size()};
-		auto img{m_history.current_template()};
-		m_history.add_entry(img, params);
+		m_history.set_last_parameters(params);
 		show_image();
 	}
 }
@@ -658,7 +657,7 @@ void MainWindow::on_label_moved()
 			params.current_bottom -= diff.second;
 		}
 
-		m_history.add_entry(img, params);
+		m_history.set_last_parameters(params);
 		show_image();
 	}
 }

@@ -23,6 +23,7 @@ namespace rs::utils
 			inline image current_image() const { return image::set_parameters(m_entries[m_position].first, m_entries[m_position].second); }
 			inline const image &current_template() const { return m_entries[m_position].first; }
 			inline const image_parameters &current_parameters() const { return m_entries[m_position].second; }
+			inline void set_last_parameters(const image_parameters &params) { m_entries[m_position].second = params; }
 			inline bool undoable() const { return m_position > 0; }
 			inline bool redoable() const { return m_position + 1 < int(m_entries.size()); }
 
