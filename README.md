@@ -1,5 +1,5 @@
 # :camera: Фотошопић
-An application for photo manipulation with some cool ML features like face detection and Neural Style Transfer.
+An application for photo manipulation.
 
 ## :information_source: About:
 An application for photo manipulation. You can do some basic photo edits like changing image resolution, image rotation, etc. Along with these, more advanced features are available, like changing the brightness, contrast, sharpeness, and similar. Fine color manipulation is also implemented such as saturation, hue and value, as well as some photo filters.
